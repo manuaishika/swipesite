@@ -32,6 +32,14 @@ model User {
   recommendations Recommendation[]
   following     Follow[]  @relation("UserFollows")
   followers     Follow[]  @relation("UserFollowers")
+
+  // Peer-review practice
+  practiceSessions    PracticeSession[]
+  practiceSubmissions PracticeSubmission[]
+  practiceAssignments PracticeReviewAssignment[]
+  practiceReviews     PracticeReview[]
+  practiceReports     PracticeReport[]
+  practiceRateEvents  PracticeRateEvent[]
 }
 
 model Paper {
@@ -58,6 +66,7 @@ model Paper {
   comments      Comment[]
   recommendations Recommendation[]
   activities    Activity[]
+  practiceAbstract PracticeAbstract?
 }
 
 model PaperLike {
@@ -214,4 +223,114 @@ model Recommendation {
 
   @@unique([userId, paperId])
   @@index([userId, score])
+}
+
+
+// ---------------------------------------------------------------------------
+// Peer-review practice (timed abstract critiques with anonymous peer review)
+// Reuses User (auth) and Paper (arXiv data). No AI features touch these tables.
+// ---------------------------------------------------------------------------
+
+// A Paper that has been curated into the practice library.
+model PracticeAbstract {
+  id        String   @id @default(cuid())
+  paperId   String   @unique
+  createdAt DateTime @default(now())
+
+  paper       Paper                @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  sessions    PracticeSession[]
+  submissions PracticeSubmission[]
+}
+
+model PracticeSession {
+  id               String   @id @default(cuid())
+  userId           String
+  abstractId       String
+  durationMinutes  Int
+  startedAt        DateTime @default(now())
+  deadlineAt       DateTime
+  noAiDeclaredAt   DateTime
+
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  abstract   PracticeAbstract @relation(fields: [abstractId], references: [id], onDelete: Cascade)
+  submission PracticeSubmission?
+
+  @@index([userId, startedAt])
+}
+
+model PracticeSubmission {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  userId      String
+  abstractId  String
+  answers     Json     // { q1..q7: string }
+  status      String   @default("visible") // "visible" | "hidden"
+  submittedAt DateTime @default(now())
+
+  session     PracticeSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  abstract    PracticeAbstract @relation(fields: [abstractId], references: [id], onDelete: Cascade)
+  assignments PracticeReviewAssignment[]
+  reviews     PracticeReview[]
+
+  @@index([userId])
+  @@index([status, submittedAt])
+}
+
+model PracticeReviewAssignment {
+  id           String    @id @default(cuid())
+  submissionId String
+  reviewerId   String
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  submission PracticeSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer   User               @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  review     PracticeReview?
+
+  @@unique([submissionId, reviewerId])
+  @@index([reviewerId])
+}
+
+model PracticeReview {
+  id           String   @id @default(cuid())
+  assignmentId String   @unique
+  submissionId String
+  reviewerId   String
+  scores       Json     // { q1: { clarity, evidence, alternatives }, ... } each 1-5
+  comment      String
+  helpful      Boolean?
+  status       String   @default("visible") // "visible" | "hidden"
+  createdAt    DateTime @default(now())
+
+  assignment PracticeReviewAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  submission PracticeSubmission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer   User                     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+model PracticeReport {
+  id         String   @id @default(cuid())
+  reporterId String
+  targetType String   // "submission" | "review"
+  targetId   String
+  reason     String
+  createdAt  DateTime @default(now())
+
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([targetType, targetId])
+}
+
+model PracticeRateEvent {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  action    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, action, createdAt])
 }

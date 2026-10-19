@@ -17,6 +17,7 @@ import {
   GitCompare,
   Lightbulb,
   Palette,
+  PenLine,
 } from 'lucide-react'
 
 export function Navbar() {
@@ -29,6 +30,7 @@ export function Navbar() {
     { href: '/swipe', label: 'Swipe', icon: BookOpen },
     { href: '/collection', label: 'Collection', icon: BookOpen },
     { href: '/compare', label: 'Compare', icon: GitCompare },
+    { href: '/practice', label: 'Practice', icon: PenLine },
     { href: '/critique', label: 'Critique', icon: Lightbulb },
     { href: '/discussions', label: 'Discussions', icon: MessageSquare },
     { href: '/collaborations', label: 'Collaborate', icon: Users },
@@ -68,20 +70,20 @@ export function Navbar() {
               </Link>
             </div>
             <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
-              {navItems.slice(0, 6).map((item) => {
+              {navItems.slice(0, 7).map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    className={`inline-flex items-center px-2 py-2 rounded-lg text-sm font-medium transition-all ${
                       isActive
                         ? 'bg-white/20 text-white'
                         : `${textColor}/90 ${hoverBg} hover:text-white`
                     }`}
                   >
-                    <Icon className="w-4 h-4 mr-2" />
+                    <Icon className="w-4 h-4 mr-1.5" />
                     {item.label}
                   </Link>
                 )

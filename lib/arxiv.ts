@@ -71,6 +71,21 @@ export async function fetchArxivPapers(
 }
 
 /**
+ * Fetch specific papers from the ArXiv API by id (e.g. "2212.08073").
+ */
+export async function fetchArxivPapersByIds(ids: string[]): Promise<ArxivPaper[]> {
+  const searchParams = new URLSearchParams({
+    id_list: ids.join(','),
+    max_results: ids.length.toString(),
+  })
+  const response = await fetch(`https://export.arxiv.org/api/query?${searchParams.toString()}`)
+  if (!response.ok) {
+    throw new Error(`ArXiv API error: ${response.statusText}`)
+  }
+  return parseArxivXML(await response.text())
+}
+
+/**
  * Parse ArXiv XML response
  */
 function parseArxivXML(xmlText: string): ArxivPaper[] {

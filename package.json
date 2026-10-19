@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
+    "seed:practice": "tsx prisma/seed-practice.ts",
+    "test:practice": "tsx scripts/test-practice.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
