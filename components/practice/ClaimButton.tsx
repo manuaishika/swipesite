@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowRight, Loader2 } from 'lucide-react'
 import { practicePost } from '@/lib/practice/api-client'
+import { btnPrimary } from './ui'
 
 export function ClaimButton() {
   const router = useRouter()
@@ -20,15 +22,12 @@ export function ClaimButton() {
     }
   }
   return (
-    <div className="my-4">
-      <button
-        onClick={claim}
-        disabled={busy}
-        className="px-4 py-2 rounded-lg bg-primary text-white font-medium disabled:opacity-50"
-      >
+    <div>
+      <button onClick={claim} disabled={busy} className={btnPrimary}>
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
         Get a submission to review
       </button>
-      {err && <span className="text-sm text-red-600 ml-3">{err}</span>}
+      {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
     </div>
   )
 }

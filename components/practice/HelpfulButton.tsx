@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ThumbsUp } from 'lucide-react'
 import { practicePost } from '@/lib/practice/api-client'
 
 export function HelpfulButton({ reviewId, initial }: { reviewId: string; initial: boolean | null }) {
@@ -17,16 +18,20 @@ export function HelpfulButton({ reviewId, initial }: { reviewId: string; initial
     }
   }
   return (
-    <span>
+    <span className="inline-flex items-center gap-2">
       <button
         onClick={toggle}
-        className={`px-3 py-1.5 rounded text-sm border border-primary ${
-          helpful ? 'bg-primary text-white' : 'text-primary'
+        aria-pressed={helpful}
+        className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+          helpful
+            ? 'border-primary bg-primary text-white'
+            : 'border-gray-300 bg-white text-gray-700 hover:border-primary hover:text-primary'
         }`}
       >
+        <ThumbsUp className="h-4 w-4" />
         {helpful ? 'Marked helpful' : 'Mark as helpful'}
       </button>
-      {err && <span className="text-sm text-red-600 ml-2">{err}</span>}
+      {err && <span className="text-sm text-red-600">{err}</span>}
     </span>
   )
 }

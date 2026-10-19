@@ -14,6 +14,7 @@ export default async function SessionPage({ params }: { params: { id: string } }
     <SessionRunner
       sessionId={data.sessionId}
       abstract={data.abstract}
+      startedMs={data.startedMs}
       deadlineMs={data.deadlineMs}
       serverNowMs={Date.now()}
     />

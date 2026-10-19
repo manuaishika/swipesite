@@ -24,7 +24,13 @@ export async function listLibrary() {
     include: { paper: { select: { title: true, arxivId: true, publishedDate: true } } },
   })
   return rows
-    .map((r) => ({ id: r.id, title: r.paper.title, arxivId: r.paper.arxivId, publishedDate: r.paper.publishedDate }))
+    .map((r) => ({
+      id: r.id,
+      title: r.paper.title,
+      arxivId: r.paper.arxivId,
+      year: r.paper.publishedDate?.getFullYear() ?? null,
+      publishedDate: r.paper.publishedDate,
+    }))
     .sort((a, b) => (b.publishedDate?.getTime() ?? 0) - (a.publishedDate?.getTime() ?? 0))
 }
 
@@ -64,6 +70,7 @@ export type RunnerData =
   | {
       state: 'open'
       sessionId: string
+      startedMs: number
       deadlineMs: number
       abstract: { title: string; abstract: string; arxivId: string | null; arxivUrl: string | null }
     }
@@ -79,6 +86,7 @@ export async function getRunnerData(userId: string, sessionId: string): Promise<
   return {
     state: 'open',
     sessionId: s.id,
+    startedMs: s.startedAt.getTime(),
     deadlineMs: s.deadlineAt.getTime(),
     abstract: { title: p.title, abstract: p.abstract, arxivId: p.arxivId, arxivUrl: arxivUrl(p) },
   }

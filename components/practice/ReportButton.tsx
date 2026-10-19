@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { Flag } from 'lucide-react'
 import { practicePost } from '@/lib/practice/api-client'
+import { btnPrimary, inputCls } from './ui'
 
 export function ReportButton({ type, targetId }: { type: 'submission' | 'review'; targetId: string }) {
   const [open, setOpen] = useState(false)
@@ -22,34 +24,36 @@ export function ReportButton({ type, targetId }: { type: 'submission' | 'review'
     setBusy(false)
   }
 
-  if (done) return <span className="text-sm text-green-700">Reported. Thank you.</span>
+  if (done) return <span className="text-sm text-emerald-700">Reported. Thank you.</span>
   return (
-    <span>
-      <button className="text-sm text-gray-500 underline" onClick={() => setOpen(!open)}>
-        Report
+    <div className="relative">
+      <button
+        type="button"
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+      >
+        <Flag className="h-3.5 w-3.5" /> Report
       </button>
       {open && (
-        <div className="mt-2 bg-white border rounded-lg p-3">
-          <label className="block text-sm font-medium mb-1" htmlFor={`r-${targetId}`}>
-            What is wrong? (e.g. real assessment material, abuse, spam)
+        <div className="absolute bottom-full right-0 z-30 mb-2 w-72 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
+          <label className="mb-1 block text-sm font-medium text-gray-900" htmlFor={`r-${targetId}`}>
+            What is wrong?
           </label>
+          <p className="mb-2 text-xs text-gray-500">e.g. real assessment material, abuse, spam</p>
           <textarea
             id={`r-${targetId}`}
-            className="w-full border rounded p-2 text-sm"
+            className={`${inputCls} min-h-[70px]`}
             maxLength={500}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
-          <button
-            className="mt-2 px-3 py-1.5 rounded bg-primary text-white text-sm disabled:opacity-50"
-            onClick={send}
-            disabled={busy || reason.trim().length < 5}
-          >
+          <button className={`${btnPrimary} mt-2 w-full`} onClick={send} disabled={busy || reason.trim().length < 5}>
             Send report
           </button>
+          {err && <div className="mt-1 text-xs text-red-600">{err}</div>}
         </div>
       )}
-      {err && <div className="text-sm text-red-600 mt-1">{err}</div>}
-    </span>
+    </div>
   )
 }
