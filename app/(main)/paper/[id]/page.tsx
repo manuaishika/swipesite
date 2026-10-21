@@ -1,10 +1,14 @@
+import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { PaperDetail } from '@/components/paper/PaperDetail'
-import { CommentsSection } from '@/components/discussion/CommentsSection'
+import { PeerReviewThread } from '@/components/discussion/PeerReviewThread'
 import { transformPaper } from '@/lib/paper-helpers'
+
+export const dynamic = 'force-dynamic'
 
 export default async function PaperPage({
   params,
@@ -51,10 +55,10 @@ export default async function PaperPage({
                   username: true,
                 },
               },
-              votes: true,
             },
+            orderBy: { createdAt: 'asc' },
           },
-          votes: true,
+          votes: { select: { voteType: true, userId: true } },
         },
         orderBy: {
           createdAt: 'desc',
@@ -71,20 +75,30 @@ export default async function PaperPage({
     )
   }
 
-  const userLike = await prisma.paperLike.findUnique({
-    where: {
-      userId_paperId: {
-        userId: session.user.id,
-        paperId: paper.id,
-      },
-    },
-  })
+  const [userLike, userSave] = await Promise.all([
+    prisma.paperLike.findUnique({
+      where: { userId_paperId: { userId: session.user.id, paperId: paper.id } },
+    }),
+    prisma.savedPaper.findUnique({
+      where: { userId_paperId: { userId: session.user.id, paperId: paper.id } },
+    }),
+  ])
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <PaperDetail paper={transformPaper(paper)} userLiked={userLike?.liked || false} userId={session.user.id} />
-      <div className="mt-8">
-        <CommentsSection paperId={paper.id} comments={paper.comments} userId={session.user.id} />
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <Link href="/discussions" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900">
+        <ArrowLeft className="h-4 w-4" /> Peer review
+      </Link>
+      <div className="mt-4 grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+        <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto">
+          <PaperDetail
+            paper={transformPaper(paper)}
+            userLiked={userLike?.liked || false}
+            userSaved={Boolean(userSave)}
+            userId={session.user.id}
+          />
+        </div>
+        <PeerReviewThread paperId={paper.id} posts={paper.comments} userId={session.user.id} />
       </div>
     </div>
   )

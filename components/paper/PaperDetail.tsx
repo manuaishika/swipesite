@@ -1,8 +1,9 @@
 'use client'
 
-import { Heart, Bookmark, ExternalLink, Users, Calendar, Tag, ThumbsUp } from 'lucide-react'
-import { format } from 'date-fns'
 import { useState } from 'react'
+import { Bookmark, Calendar, ExternalLink, Heart, Users } from 'lucide-react'
+import { format } from 'date-fns'
+import { areaLabel } from '@/lib/niche-core'
 
 interface Paper {
   id: string
@@ -32,12 +33,13 @@ interface Paper {
 interface PaperDetailProps {
   paper: Paper
   userLiked: boolean
+  userSaved?: boolean
   userId: string
 }
 
-export function PaperDetail({ paper, userLiked, userId }: PaperDetailProps) {
+export function PaperDetail({ paper, userLiked, userSaved = false }: PaperDetailProps) {
   const [liked, setLiked] = useState(userLiked)
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState(userSaved)
   const [likeCount, setLikeCount] = useState(paper.likes.length)
 
   const handleLike = async () => {
@@ -45,24 +47,17 @@ export function PaperDetail({ paper, userLiked, userId }: PaperDetailProps) {
       const response = await fetch('/api/papers/like', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paperId: paper.id,
-          liked: !liked,
-        }),
+        body: JSON.stringify({ paperId: paper.id, liked: !liked }),
       })
-
       if (response.ok) {
         setLiked(!liked)
+        // the like route also adds/removes the paper from the collection
+        setSaved(!liked)
         setLikeCount((prev) => (liked ? prev - 1 : prev + 1))
-
-        // Create activity
         await fetch('/api/activities', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: !liked ? 'like' : 'unlike',
-            paperId: paper.id,
-          }),
+          body: JSON.stringify({ type: !liked ? 'like' : 'unlike', paperId: paper.id }),
         })
       }
     } catch (error) {
@@ -75,132 +70,94 @@ export function PaperDetail({ paper, userLiked, userId }: PaperDetailProps) {
       const response = await fetch('/api/papers/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paperId: paper.id,
-          saved: !saved,
-        }),
+        body: JSON.stringify({ paperId: paper.id, saved: !saved }),
       })
-
-      if (response.ok) {
-        setSaved(!saved)
-      }
+      if (response.ok) setSaved(!saved)
     } catch (error) {
       console.error('Error toggling save:', error)
     }
   }
 
+  const areas = Array.from(new Set(paper.categories.map(areaLabel)))
+  const paperUrl = paper.url || (paper.arxivId ? `https://arxiv.org/abs/${paper.arxivId}` : null)
+
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8">
-      <div className="flex items-start justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 flex-1">{paper.title}</h1>
-        <div className="flex space-x-2 ml-4">
-          <button
-            onClick={handleLike}
-            className={`p-3 rounded-lg transition-colors ${
-              liked
-                ? 'bg-red-100 text-red-600'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
-          </button>
-          <button
-            onClick={handleSave}
-            className={`p-3 rounded-lg transition-colors ${
-              saved
-                ? 'bg-yellow-100 text-yellow-600'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <Bookmark className={`w-5 h-5 ${saved ? 'fill-current' : ''}`} />
-          </button>
+    <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-7">
+      {areas.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {areas.map((a) => (
+            <span key={a} className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700">
+              {a}
+            </span>
+          ))}
         </div>
-      </div>
+      )}
+      <h1 className="text-xl font-bold leading-snug text-gray-900 sm:text-2xl">{paper.title}</h1>
 
-      <div className="space-y-4 mb-6">
-        <div className="flex items-start space-x-2">
-          <Users className="w-5 h-5 text-gray-400 mt-0.5" />
-          <div>
-            <p className="text-sm text-gray-600">
-              <span className="font-medium">Authors:</span>{' '}
-              {paper.authors.join(', ')}
-            </p>
-          </div>
-        </div>
-
+      <div className="mt-3 space-y-1.5 text-sm text-gray-500">
+        {paper.authors.length > 0 && (
+          <p className="flex items-start gap-2">
+            <Users className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{paper.authors.join(', ')}</span>
+          </p>
+        )}
         {paper.publishedDate && (
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-gray-400" />
-            <p className="text-sm text-gray-600">
-              Published: {format(new Date(paper.publishedDate), 'MMMM d, yyyy')}
-            </p>
-          </div>
-        )}
-
-        {paper.venue && (
-          <div className="flex items-center space-x-2">
-            <Tag className="w-5 h-5 text-gray-400" />
-            <p className="text-sm text-gray-600">{paper.venue}</p>
-          </div>
-        )}
-
-        {paper.keywords.length > 0 && (
-          <div className="flex items-start space-x-2">
-            <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
-            <div className="flex flex-wrap gap-2">
-              {paper.keywords.map((keyword, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full"
-                >
-                  {keyword}
-                </span>
-              ))}
-            </div>
-          </div>
+          <p className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            {format(new Date(paper.publishedDate), 'MMMM d, yyyy')}
+            {paper.venue ? ` · ${paper.venue}` : ''}
+          </p>
         )}
       </div>
 
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-3">Abstract</h2>
-        <p className="text-gray-700 leading-relaxed">{paper.abstract}</p>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <button
+          onClick={handleLike}
+          aria-pressed={liked}
+          className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+            liked ? 'bg-primary text-white' : 'border border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
+          }`}
+        >
+          <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+          {liked ? 'In your picks' : 'Interested'} · {likeCount}
+        </button>
+        <button
+          onClick={handleSave}
+          aria-pressed={saved}
+          title={saved ? 'Remove from collection' : 'Save to collection'}
+          className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            saved ? 'bg-amber-100 text-amber-800' : 'border border-gray-300 text-gray-700 hover:border-gray-400'
+          }`}
+        >
+          <Bookmark className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
+          {saved ? 'Saved' : 'Save'}
+        </button>
+        {paperUrl && (
+          <a href={paperUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-primary hover:underline">
+            arXiv <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+        {paper.pdfUrl && (
+          <a href={paper.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-primary hover:underline">
+            PDF <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
       </div>
 
-      <div className="flex items-center justify-between pt-6 border-t">
-        <div className="flex items-center space-x-6 text-sm text-gray-600">
-          <span className="flex items-center">
-            <ThumbsUp className="w-4 h-4 mr-1" />
-            {likeCount} likes
-          </span>
-          <span>{paper.citations} citations</span>
-          <span>{paper.views} views</span>
+      <div className="mt-6 border-t border-gray-100 pt-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400">Abstract</h2>
+        <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800">{paper.abstract}</p>
+      </div>
+
+      {paper.keywords.length > 0 && (
+        <div className="mt-5 flex flex-wrap gap-1.5">
+          {paper.keywords.map((k) => (
+            <span key={k} className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600">
+              {k}
+            </span>
+          ))}
         </div>
-
-        <div className="flex space-x-2">
-          {paper.pdfUrl && (
-            <a
-              href={paper.pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>View PDF</span>
-            </a>
-          )}
-          {paper.url && (
-            <a
-              href={paper.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>View Paper</span>
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
+      )}
+    </article>
   )
 }

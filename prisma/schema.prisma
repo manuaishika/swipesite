@@ -102,6 +102,8 @@ model Comment {
   userId    String
   paperId   String
   content   String
+  kind      String   @default("discussion") // "review" | "question" | "discussion"
+  verdict   String?  // reviews only: "promising" | "mixed" | "skeptical"
   upvotes   Int      @default(0)
   downvotes Int      @default(0)
   createdAt DateTime @default(now())
@@ -111,6 +113,8 @@ model Comment {
   paper     Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
   replies   CommentReply[]
   votes     CommentVote[]
+
+  @@index([paperId, createdAt])
 }
 
 model CommentReply {
