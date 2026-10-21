@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getSafeServerSession } from '@/lib/safe-session'
 import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
 import { generateRecommendations, saveRecommendations } from '@/lib/recommendations'
@@ -7,7 +6,7 @@ import { RecommendationsList } from '@/components/recommendations/Recommendation
 import { transformPapers } from '@/lib/paper-helpers'
 
 export default async function RecommendationsPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getSafeServerSession()
 
   if (!session) {
     return (

@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getSafeServerSession } from '@/lib/safe-session'
 import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
 import { transformPapers } from '@/lib/paper-helpers'
@@ -7,7 +6,7 @@ import Link from 'next/link'
 import { BookOpen, ExternalLink } from 'lucide-react'
 
 export default async function CollectionPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getSafeServerSession()
 
   if (!session) {
     return (

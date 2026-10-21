@@ -1,84 +1,92 @@
 import Link from 'next/link'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getSafeServerSession } from '@/lib/safe-session'
 import { ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { PaperDetail } from '@/components/paper/PaperDetail'
 import { PeerReviewThread } from '@/components/discussion/PeerReviewThread'
 import { transformPaper } from '@/lib/paper-helpers'
+import { DbUnavailable } from '@/components/DbUnavailable'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PaperPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function PaperPage({ params }: { params: { id: string } }) {
   // Public: anyone can read a paper and its review thread; posting/voting needs an account.
-  const session = await getServerSession(authOptions)
+  const session = await getSafeServerSession()
   const userId = session?.user?.id ?? null
 
-  const paper = await prisma.paper.findUnique({
-    where: { id: params.id },
-    include: {
-      likes: {
-        where: { liked: true },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-            },
-          },
-        },
-      },
-      comments: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              avatar: true,
-            },
-          },
-          replies: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  username: true,
-                },
+  let data
+  try {
+    const paper = await prisma.paper.findUnique({
+      where: { id: params.id },
+      include: {
+        likes: {
+          where: { liked: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
               },
             },
-            orderBy: { createdAt: 'asc' },
           },
-          // only the viewer's own vote (to highlight it); other voters stay private
-          votes: { where: { userId: userId ?? '' }, select: { voteType: true, userId: true } },
         },
-        orderBy: {
-          createdAt: 'desc',
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                avatar: true,
+              },
+            },
+            replies: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: 'asc' },
+            },
+            // only the viewer's own vote (to highlight it); other voters stay private
+            votes: { where: { userId: userId ?? '' }, select: { voteType: true, userId: true } },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
         },
       },
-    },
-  })
+    })
 
-  if (!paper) {
+    if (!paper) {
+      data = null
+    } else {
+      const [userLike, userSave] = userId
+        ? await Promise.all([
+            prisma.paperLike.findUnique({ where: { userId_paperId: { userId, paperId: paper.id } } }),
+            prisma.savedPaper.findUnique({ where: { userId_paperId: { userId, paperId: paper.id } } }),
+          ])
+        : [null, null]
+      data = { paper, userLike, userSave }
+    }
+  } catch (err) {
+    console.error('[paper] data load failed:', err)
+    return <DbUnavailable />
+  }
+
+  if (!data) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <p className="text-gray-500">Paper not found</p>
       </div>
     )
   }
-
-  const [userLike, userSave] = userId
-    ? await Promise.all([
-        prisma.paperLike.findUnique({ where: { userId_paperId: { userId, paperId: paper.id } } }),
-        prisma.savedPaper.findUnique({ where: { userId_paperId: { userId, paperId: paper.id } } }),
-      ])
-    : [null, null]
+  const { paper, userLike, userSave } = data
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">

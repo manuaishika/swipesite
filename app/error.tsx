@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 export default function Error({
   error,
   reset,
@@ -7,28 +9,35 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-      <div className="max-w-lg w-full bg-white shadow rounded-xl p-6">
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">
-          Something went wrong
-        </h1>
+      <div className="max-w-lg w-full bg-white shadow rounded-2xl p-6">
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong on our side</h1>
         <p className="text-sm text-gray-600 mb-4">
-          If this is happening on Vercel, it’s usually missing environment
-          variables or a database connection issue. You can check{' '}
-          <code className="px-1 py-0.5 bg-gray-100 rounded">/api/status</code>.
+          This page hit an error while loading. Trying again usually works. If it keeps happening, the error ID below
+          lets us find the exact cause in the server logs (Vercel → Logs, search for the ID).
         </p>
-        <pre className="text-xs bg-gray-900 text-gray-100 rounded-lg p-3 overflow-auto mb-4">
-          {error.message}
-        </pre>
-        <button
-          onClick={() => reset()}
-          className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700"
-        >
-          Retry
-        </button>
+        {error.digest && (
+          <p className="text-xs text-gray-500 mb-4">
+            Error ID: <code className="px-1.5 py-0.5 bg-gray-100 rounded font-mono text-gray-800 select-all">{error.digest}</code>
+          </p>
+        )}
+        <div className="flex gap-3">
+          <button
+            onClick={() => reset()}
+            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-light"
+          >
+            Try again
+          </button>
+          <a href="/" className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+            Home
+          </a>
+        </div>
       </div>
     </div>
   )
 }
-

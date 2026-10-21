@@ -1,6 +1,5 @@
+import { getSafeServerSession } from '@/lib/safe-session'
 import Link from 'next/link'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { formatDistanceToNow } from 'date-fns'
 import { ArrowRight, Compass, Layers, MessagesSquare, PenLine } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
@@ -16,7 +15,7 @@ type Scope = 'all' | 'niche'
 
 export default async function PeerReviewPage({ searchParams }: { searchParams: { scope?: string } }) {
   // Public: anyone can browse threads. Your picks and the niche filter need an account.
-  const session = await getServerSession(authOptions)
+  const session = await getSafeServerSession()
   const userId = session?.user?.id ?? null
   const scope: Scope = userId && searchParams.scope === 'niche' ? 'niche' : 'all'
 

@@ -8,13 +8,20 @@ import { PROMPTS } from '@/lib/practice/constants'
 import { AssessmentNotice } from '@/components/practice/Notices'
 import { StartForm } from '@/components/practice/StartForm'
 import { ArxivLink, Card, Chip, PageShell } from '@/components/practice/ui'
+import { DbUnavailable } from '@/components/DbUnavailable'
 
 export const dynamic = 'force-dynamic'
 
 export default async function StartPage({ params }: { params: { id: string } }) {
   // Anyone can look; starting a timed session needs an account.
   const userId = await optionalUserId()
-  const a = await getLibraryItem(params.id)
+  let a
+  try {
+    a = await getLibraryItem(params.id)
+  } catch (err) {
+    console.error('[practice/start] data load failed:', err)
+    return <DbUnavailable />
+  }
   if (!a) notFound()
   return (
     <PageShell>

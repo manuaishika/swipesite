@@ -17,6 +17,8 @@ import { LoginToParticipate } from '@/components/auth/LoginGate'
 import { getDashboard, listLibrary } from '@/lib/practice/service'
 import { ArxivAttribution, Rules } from '@/components/practice/Notices'
 import { Card, Chip, EmptyState, PageShell, SectionTitle } from '@/components/practice/ui'
+import { safeLoad } from '@/lib/safe-load'
+import { DbUnavailable } from '@/components/DbUnavailable'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,10 +32,14 @@ const STEPS = [
 export default async function PracticeHome() {
   // Public: anyone can browse the library and rules; practising and reviewing need an account.
   const userId = await optionalUserId()
-  const [library, dash] = await Promise.all([
-    listLibrary(),
-    userId ? getDashboard(userId) : Promise.resolve({ unlocked: false, submissions: [], queue: [], inProgress: [] }),
-  ])
+  const loaded = await safeLoad('practice', () =>
+    Promise.all([
+      listLibrary(),
+      userId ? getDashboard(userId) : Promise.resolve({ unlocked: false, submissions: [], queue: [], inProgress: [] }),
+    ]),
+  )
+  if (!loaded) return <DbUnavailable />
+  const [library, dash] = loaded
   const pending = dash.queue.filter((q) => !q.completed)
   const reviewsGiven = dash.queue.length - pending.length
   const reviewsReceived = dash.submissions.reduce((n, s) => n + s.reviewsDone, 0)

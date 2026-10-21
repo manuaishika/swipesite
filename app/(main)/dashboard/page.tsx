@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getSafeServerSession } from '@/lib/safe-session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
@@ -38,7 +37,7 @@ const SECONDARY = [
 ]
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getSafeServerSession()
 
   // Logged-out visitors get the landing page, which explains the app and lets them start swiping.
   if (!session) {

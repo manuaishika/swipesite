@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getSafeServerSession } from '@/lib/safe-session'
 import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
 import { UserProfile } from '@/components/profile/UserProfile'
@@ -7,7 +6,7 @@ import { stringToArray } from '@/lib/json-helpers'
 import { transformPapers, transformPaper } from '@/lib/paper-helpers'
 
 export default async function ProfilePage() {
-  const session = await getServerSession(authOptions)
+  const session = await getSafeServerSession()
 
   if (!session) {
     return (

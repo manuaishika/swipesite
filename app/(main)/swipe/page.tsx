@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getSafeServerSession } from '@/lib/safe-session'
 import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -55,7 +54,7 @@ function FieldFilter({ fields, active }: { fields: { id: string; label: string; 
 }
 
 export default async function SwipePage({ searchParams }: { searchParams: { field?: string } }) {
-  const session = await getServerSession(authOptions)
+  const session = await getSafeServerSession()
   const field = FIELDS.some((f) => f.id === searchParams.field) ? searchParams.field : undefined
 
   // Guests can rate straight away; their ratings are saved to the account after sign-up.
