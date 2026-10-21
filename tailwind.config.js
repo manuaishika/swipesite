@@ -8,6 +8,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-new-spirit)', 'ui-serif', 'Georgia', 'serif'],
+      },
       colors: {
         primary: {
           DEFAULT: '#215E61',

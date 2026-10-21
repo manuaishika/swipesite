@@ -1,9 +1,20 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { Providers } from './providers'
 
-const inter = Inter({ subsets: ['latin'] })
+// New Spirit: the house font, used everywhere.
+const newSpirit = localFont({
+  src: [
+    { path: './fonts/NewSpirit-Light.otf', weight: '300', style: 'normal' },
+    { path: './fonts/NewSpirit-Regular.otf', weight: '400', style: 'normal' },
+    { path: './fonts/NewSpirit-Medium.otf', weight: '500', style: 'normal' },
+    { path: './fonts/NewSpirit-SemiBold.otf', weight: '600', style: 'normal' },
+    { path: './fonts/NewSpirit-Bold.otf', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-new-spirit',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'TinderP - Academic Paper Platform',
@@ -16,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className={newSpirit.variable}>
+      <body className={newSpirit.className}>
         <Providers>{children}</Providers>
       </body>
     </html>
