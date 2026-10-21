@@ -49,9 +49,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
       case 'like':
         return (
           <>
-            <Link href={`/user/${activity.user.username}`} className="font-semibold hover:underline">
-              {userName}
-            </Link>
+            <span className="font-semibold">{userName}</span>
             {' liked '}
             {activity.paper && (
               <Link href={`/paper/${activity.paper.id}`} className="font-semibold hover:underline">
@@ -63,9 +61,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
       case 'comment':
         return (
           <>
-            <Link href={`/user/${activity.user.username}`} className="font-semibold hover:underline">
-              {userName}
-            </Link>
+            <span className="font-semibold">{userName}</span>
             {' commented on '}
             {activity.paper && (
               <Link href={`/paper/${activity.paper.id}`} className="font-semibold hover:underline">
@@ -77,9 +73,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
       case 'save':
         return (
           <>
-            <Link href={`/user/${activity.user.username}`} className="font-semibold hover:underline">
-              {userName}
-            </Link>
+            <span className="font-semibold">{userName}</span>
             {' saved '}
             {activity.paper && (
               <Link href={`/paper/${activity.paper.id}`} className="font-semibold hover:underline">
@@ -91,18 +85,14 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
       case 'collaboration':
         return (
           <>
-            <Link href={`/user/${activity.user.username}`} className="font-semibold hover:underline">
-              {userName}
-            </Link>
+            <span className="font-semibold">{userName}</span>
             {' posted a new collaboration opportunity'}
           </>
         )
       case 'follow':
         return (
           <>
-            <Link href={`/user/${activity.user.username}`} className="font-semibold hover:underline">
-              {userName}
-            </Link>
+            <span className="font-semibold">{userName}</span>
             {' started following someone'}
           </>
         )

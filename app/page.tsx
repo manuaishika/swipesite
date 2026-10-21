@@ -1,7 +1,36 @@
 import { redirect } from 'next/navigation'
 import { getSafeServerSession } from '@/lib/safe-session'
 import Link from 'next/link'
-import { BookOpen, MessageSquare, Users, Sparkles, Heart, ArrowRight, Calendar, Mail, Zap, TrendingUp, Target } from 'lucide-react'
+import {
+  ArrowRight,
+  Bookmark,
+  Calendar,
+  Compass,
+  Heart,
+  Layers,
+  Mail,
+  MessagesSquare,
+  PenLine,
+  Sparkles,
+  ThumbsUp,
+  Users,
+  X,
+} from 'lucide-react'
+
+const SECONDARY = [
+  { icon: Bookmark, title: 'Collection', body: 'Keep the papers you picked' },
+  { icon: PenLine, title: 'Practice critiques', body: 'Timed abstract critiques, peer-scored' },
+  { icon: Sparkles, title: 'Recommendations', body: 'More papers like your picks' },
+  { icon: Users, title: 'Collaborate', body: 'Find research partners' },
+  { icon: Calendar, title: 'Conferences', body: 'Venues and deadlines', href: '/conferences' },
+  { icon: Mail, title: 'Opportunities', body: 'Reach out to researchers', href: '/opportunities' },
+]
+
+const STEPS = [
+  { icon: Layers, title: 'Swipe abstracts', body: 'Right if you would want to work on it, left if not.' },
+  { icon: Compass, title: 'See your niche', body: 'The areas you keep choosing add up to your niche.' },
+  { icon: MessagesSquare, title: 'Review your picks', body: 'Write a review, ask questions, see where others land.' },
+]
 
 export default async function Home() {
   const session = await getSafeServerSession()
@@ -10,308 +39,183 @@ export default async function Home() {
     redirect('/dashboard')
   }
 
-  const features = [
-    {
-      icon: BookOpen,
-      title: 'Collection',
-      description: 'Save and organize papers you love',
-      color: 'from-emerald-400 to-teal-500',
-    },
-    {
-      icon: MessageSquare,
-      title: 'Discussions',
-      description: 'Engage with the research community',
-      color: 'from-blue-400 to-indigo-500',
-    },
-    {
-      icon: Users,
-      title: 'Collaborations',
-      description: 'Find research partners worldwide',
-      color: 'from-purple-400 to-pink-500',
-    },
-    {
-      icon: Mail,
-      title: 'Opportunities',
-      description: 'Connect with researchers directly',
-      color: 'from-orange-400 to-red-500',
-    },
-    {
-      icon: Calendar,
-      title: 'Conferences',
-      description: 'Track upcoming academic events',
-      color: 'from-cyan-400 to-blue-500',
-    },
-    {
-      icon: Sparkles,
-      title: 'AI Recommendations',
-      description: 'Personalized paper suggestions',
-      color: 'from-yellow-400 to-orange-500',
-    },
-  ]
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-light/10">
-      {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-16 animate-fade-in">
-          <div className="inline-block mb-4 px-4 py-2 bg-primary/10 rounded-full text-primary-dark font-semibold text-sm">
-            🚀 Discover Research Papers Like Never Before
-          </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold text-primary-dark mb-6 leading-tight">
-            Swipe Your Way to <br />
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-white">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+        {/* hero */}
+        <section className="text-center">
+          <span className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary-dark">
+            Abstracts from arXiv
+          </span>
+          <h1 className="mx-auto mt-5 max-w-4xl text-4xl font-extrabold leading-tight text-primary-dark sm:text-6xl">
+            Find your research niche.
+            <br />
             <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-              Research Success
+              Then put it to peer review.
             </span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            The modern way to discover academic papers. Swipe through papers from ArXiv, 
-            build your collection, collaborate with researchers, and accelerate your research journey.
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-600">
+            Swipe through paper abstracts to discover the areas you actually want to work in. When you pick a paper,
+            review it with other researchers: what it claims, what holds up, and what doesn&apos;t.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               href="/register"
-              className="px-8 py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary-light transition-all shadow-xl hover:shadow-2xl hover:scale-105 flex items-center gap-2 text-lg"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-lg font-bold text-white shadow-lg transition hover:bg-primary-light"
             >
-              Start Swiping Free <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/conferences"
-              className="px-8 py-4 bg-white text-primary rounded-xl font-bold hover:bg-gray-50 transition-all shadow-xl border-2 border-primary text-lg"
-            >
-              Browse Conferences
-            </Link>
-          </div>
-        </div>
-
-        {/* Features Grid */}
-        <div className="mb-20" id="features">
-          <h2 className="text-3xl font-bold text-center text-primary-dark mb-8">
-            Everything You Need in One Platform
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, idx) => {
-              const Icon = feature.icon
-              return (
-                <div
-                  key={idx}
-                  className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:-translate-y-2 border-t-4 border-primary animate-fade-in cursor-pointer group"
-                  style={{ animationDelay: `${idx * 100}ms` }}
-                >
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-all duration-300 group-hover:rotate-6">
-                    <Icon className="w-7 h-7 text-primary group-hover:scale-110 transition-transform duration-300" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors duration-300">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Interactive Swipe Demo */}
-        <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 mb-20" id="demo">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold text-primary-dark mb-6">
-                Swipe Through Papers
-              </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Browse through thousands of papers from ArXiv with an intuitive swipe interface. 
-                Right swipe saves to your collection, left swipe moves to the next paper. 
-                It&apos;s research discovery made simple and fun.
-              </p>
-              <div className="space-y-4 mb-8">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <Heart className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 mb-1">Swipe Right to Save</h4>
-                    <p className="text-gray-600">Papers you love are instantly added to your collection</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <span className="text-2xl">←</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 mb-1">Swipe Left to Skip</h4>
-                    <p className="text-gray-600">Not interested? Just swipe left and move on</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 mb-1">AI-Powered Recommendations</h4>
-                    <p className="text-gray-600">Get smarter suggestions based on your interests</p>
-                  </div>
-                </div>
-              </div>
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary-light transition-all shadow-lg"
-              >
-                Try It Now <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-            <div className="relative">
-              <div className="bg-gradient-to-br from-primary/10 to-accent-light/10 rounded-2xl p-8 shadow-lg">
-                <div className="bg-white rounded-xl shadow-2xl p-6 mb-4 transform hover:rotate-2 transition-transform">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-gray-500 font-medium">Paper 1 of 20</span>
-                    <Heart className="w-5 h-5 text-gray-300" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    Attention Is All You Need
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                    We propose a new simple network architecture, the Transformer, based solely on attention mechanisms...
-                  </p>
-                  <div className="flex gap-2 mb-4">
-                    <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">NLP</span>
-                    <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Transformers</span>
-                    <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">AI</span>
-                  </div>
-                  <div className="flex justify-center gap-6 pt-4 border-t">
-                    <button className="p-4 bg-red-50 rounded-full hover:bg-red-100 transition-colors shadow-md">
-                      <span className="text-3xl">←</span>
-                    </button>
-                    <button className="p-4 bg-green-50 rounded-full hover:bg-green-100 transition-colors shadow-md">
-                      <Heart className="w-8 h-8 text-green-600 fill-current" />
-                    </button>
-                  </div>
-                </div>
-                <div className="text-center text-sm text-gray-500 font-medium">
-                  👆 Swipe left or right to discover papers
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Feature Highlights */}
-        <div className="mb-20">
-          <h2 className="text-4xl font-bold text-center text-primary-dark mb-4">
-            Powerful Features for Researchers
-          </h2>
-          <p className="text-center text-gray-600 mb-12 text-lg max-w-2xl mx-auto">
-            Everything you need to discover, organize, and collaborate on research
-          </p>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all hover:scale-105 border-t-4 border-primary">
-              <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary-light rounded-xl flex items-center justify-center mb-4">
-                <Zap className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Lightning Fast</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Browse through thousands of papers in minutes. Our optimized interface makes paper discovery incredibly efficient.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all hover:scale-105 border-t-4 border-accent">
-              <div className="w-14 h-14 bg-gradient-to-br from-accent to-accent-light rounded-xl flex items-center justify-center mb-4">
-                <TrendingUp className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Stay Updated</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Track conferences, deadlines, and latest papers in your field. Never miss an important opportunity.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all hover:scale-105 border-t-4 border-primary-light">
-              <div className="w-14 h-14 bg-gradient-to-br from-primary-light to-primary rounded-xl flex items-center justify-center mb-4">
-                <Target className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Focused Research</h3>
-              <p className="text-gray-600 leading-relaxed">
-                AI-powered recommendations ensure you only see papers relevant to your research interests.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Public Preview Links */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
-          <Link
-            href="/conferences"
-            className="group bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all hover:scale-105 border-l-4 border-primary"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <Calendar className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-bold text-gray-900">Conferences</h3>
-            </div>
-            <p className="text-gray-600 mb-2">
-              Browse upcoming conferences, workshops, and journals
-            </p>
-            <span className="text-primary font-semibold text-sm">Explore Now →</span>
-          </Link>
-
-          <Link
-            href="/register"
-            className="group bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all hover:scale-105 border-l-4 border-primary cursor-pointer"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <BookOpen className="w-6 h-6 text-primary" />
-              <h3 className="text-xl font-bold text-gray-900">Collection</h3>
-            </div>
-            <p className="text-gray-600 mb-2">
-              Save and organize your favorite papers
-            </p>
-            <span className="text-primary font-semibold text-sm">Sign up to start →</span>
-          </Link>
-
-          <Link
-            href="/register"
-            className="group bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all hover:scale-105 border-l-4 border-primary cursor-pointer"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <MessageSquare className="w-6 h-6 text-primary" />
-              <h3 className="text-xl font-bold text-gray-900">Discussions</h3>
-            </div>
-            <p className="text-gray-600 mb-2">
-              Join conversations about research papers
-            </p>
-            <span className="text-primary font-semibold text-sm">Sign up to start →</span>
-          </Link>
-
-          <Link
-            href="/register"
-            className="group bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all hover:scale-105 border-l-4 border-primary cursor-pointer"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <Users className="w-6 h-6 text-primary" />
-              <h3 className="text-xl font-bold text-gray-900">Collaborations</h3>
-            </div>
-            <p className="text-gray-600 mb-2">
-              Find research partners worldwide
-            </p>
-            <span className="text-primary font-semibold text-sm">Sign up to start →</span>
-          </Link>
-        </div>
-
-        {/* Final CTA */}
-        <div className="bg-gradient-to-r from-primary to-primary-light rounded-3xl p-12 text-center text-white shadow-2xl">
-          <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Research?</h2>
-          <p className="text-primary-50 mb-8 text-lg max-w-2xl mx-auto">
-            Join thousands of researchers discovering papers the smart way. Start swiping, build your collection, and accelerate your research journey today.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link
-              href="/register"
-              className="px-10 py-4 bg-white text-primary rounded-xl font-bold hover:bg-gray-100 transition-all shadow-xl text-lg"
-            >
-              Get Started Free
+              Start swiping free <ArrowRight className="h-5 w-5" />
             </Link>
             <Link
               href="/login"
-              className="px-10 py-4 bg-primary-dark/50 backdrop-blur text-white rounded-xl font-bold hover:bg-primary-dark/70 transition-all border-2 border-white/30 text-lg"
+              className="inline-flex items-center rounded-xl border-2 border-primary bg-white px-7 py-3.5 text-lg font-bold text-primary transition hover:bg-primary-50"
             >
-              Sign In
+              Log in
             </Link>
           </div>
-        </div>
+        </section>
+
+        {/* how it works */}
+        <ol className="mt-16 grid gap-4 sm:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <li key={s.title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-2 font-semibold text-gray-900">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm text-white">{i + 1}</span>
+                <s.icon className="h-4 w-4 text-primary" /> {s.title}
+              </div>
+              <p className="mt-2 text-sm text-gray-600">{s.body}</p>
+            </li>
+          ))}
+        </ol>
+
+        {/* pillar 1 */}
+        <section className="mt-20 grid items-center gap-10 md:grid-cols-2">
+          <div>
+            <span className="text-sm font-semibold uppercase tracking-wide text-primary">1 · Find your niche</span>
+            <h2 className="mt-2 text-3xl font-bold text-primary-dark sm:text-4xl">Read the abstract. Swipe.</h2>
+            <p className="mt-4 text-lg leading-relaxed text-gray-600">
+              Every card is a real arXiv abstract, shown in full. Your swipes build a live picture of the research areas
+              you lean towards, and once it&apos;s clear, your deck leads with papers in your niche while still mixing in
+              something new.
+            </p>
+          </div>
+          <div className="relative rounded-3xl bg-gradient-to-br from-primary/10 to-accent-light/10 p-6 sm:p-8">
+            <div className="rounded-2xl bg-white p-6 shadow-xl">
+              <div className="flex gap-1.5">
+                <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-white">In your niche</span>
+                <span className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700">Natural Language Processing</span>
+              </div>
+              <h3 className="mt-3 text-lg font-bold text-gray-900">Attention Is All You Need</h3>
+              <p className="mt-2 line-clamp-3 text-sm text-gray-600">
+                We propose a new simple network architecture, the Transformer, based solely on attention mechanisms,
+                dispensing with recurrence and convolutions entirely...
+              </p>
+              <div className="mt-5 flex justify-center gap-5">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-rose-200 text-rose-500">
+                  <X className="h-6 w-6" />
+                </span>
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white">
+                  <Heart className="h-6 w-6" />
+                </span>
+              </div>
+            </div>
+            <div className="mt-4 rounded-2xl bg-white p-4 shadow-md">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">You lean towards</p>
+              {[
+                ['Natural Language Processing', 58],
+                ['Machine Learning', 27],
+                ['Computers & Society', 15],
+              ].map(([label, pct]) => (
+                <div key={label as string} className="mt-2">
+                  <div className="flex justify-between text-sm text-gray-700">
+                    <span>{label}</span>
+                    <span className="text-gray-400">{pct}%</span>
+                  </div>
+                  <div className="mt-1 h-1.5 rounded-full bg-gray-100">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* pillar 2 */}
+        <section className="mt-20 grid items-center gap-10 md:grid-cols-2">
+          <div className="md:order-2">
+            <span className="text-sm font-semibold uppercase tracking-wide text-primary">2 · Peer review</span>
+            <h2 className="mt-2 text-3xl font-bold text-primary-dark sm:text-4xl">You picked it. Now argue about it.</h2>
+            <p className="mt-4 text-lg leading-relaxed text-gray-600">
+              Every paper has a review thread. Write a structured review with a verdict, ask a question, or start a
+              discussion. Vote on the posts that help, and see at a glance whether reviewers find a paper promising,
+              mixed or unconvinced.
+            </p>
+          </div>
+          <div className="space-y-3 rounded-3xl bg-gradient-to-br from-primary/10 to-accent-light/10 p-6 sm:p-8 md:order-1">
+            <div className="rounded-2xl bg-white p-4 shadow-md">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">M</span>
+                <span className="font-semibold text-gray-900">maya</span>
+                <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-white">Review</span>
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">Promising</span>
+              </div>
+              <p className="mt-2 text-sm text-gray-700">
+                <strong>Main claim:</strong> attention alone matches recurrent models on translation.{' '}
+                <strong>What&apos;s missing:</strong> how it scales to long documents.
+              </p>
+              <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
+                <ThumbsUp className="h-3.5 w-3.5" /> 12
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white p-4 shadow-md">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">J</span>
+                <span className="font-semibold text-gray-900">jon</span>
+                <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-800">Question</span>
+              </div>
+              <p className="mt-2 text-sm text-gray-700">Would the result hold without the large training budget?</p>
+            </div>
+            <div className="rounded-2xl bg-white p-4 shadow-md">
+              <p className="text-sm font-semibold text-gray-900">Reviewers&apos; verdict</p>
+              <div className="mt-2 flex h-2 overflow-hidden rounded-full">
+                <span className="bg-emerald-500" style={{ width: '60%' }} />
+                <span className="bg-amber-400" style={{ width: '25%' }} />
+                <span className="bg-rose-500" style={{ width: '15%' }} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* secondary */}
+        <section className="mt-20">
+          <h2 className="text-center text-2xl font-bold text-primary-dark">Also on ResearchSwipe</h2>
+          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
+            {SECONDARY.map((f) => (
+              <Link
+                key={f.title}
+                href={f.href ?? '/register'}
+                className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary"
+              >
+                <f.icon className="h-5 w-5 text-primary" />
+                <div className="mt-2 font-semibold text-gray-900">{f.title}</div>
+                <div className="mt-0.5 text-sm text-gray-500">{f.body}</div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* final CTA */}
+        <section className="mt-20 rounded-3xl bg-gradient-to-r from-primary to-primary-light p-10 text-center text-white shadow-xl sm:p-12">
+          <h2 className="text-3xl font-bold sm:text-4xl">Ten swipes to your niche</h2>
+          <p className="mx-auto mt-3 max-w-xl text-white/85">
+            It takes about ten abstracts for your niche to show. Then pick a paper and write your first review.
+          </p>
+          <Link
+            href="/register"
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-lg font-bold text-primary shadow-lg transition hover:bg-gray-100"
+          >
+            Get started free <ArrowRight className="h-5 w-5" />
+          </Link>
+        </section>
       </div>
     </div>
   )

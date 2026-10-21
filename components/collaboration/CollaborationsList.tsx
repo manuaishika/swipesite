@@ -110,12 +110,7 @@ export function CollaborationsList({ collaborations, userId }: CollaborationsLis
                   {getStatusBadge(collab.status)}
                 </div>
                 <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                  <Link
-                    href={`/user/${collab.user.username}`}
-                    className="hover:text-gray-700"
-                  >
-                    {collab.user.name || collab.user.username}
-                  </Link>
+                  <span>{collab.user.name || collab.user.username}</span>
                   <span className="flex items-center">
                     <Clock className="w-4 h-4 mr-1" />
                     {formatDistanceToNow(new Date(collab.createdAt), { addSuffix: true })}
