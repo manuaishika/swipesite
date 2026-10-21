@@ -27,9 +27,9 @@ const SECONDARY = [
 ]
 
 const STEPS = [
-  { icon: Layers, title: 'Swipe abstracts', body: 'Right if you would want to work on it, left if not.' },
-  { icon: Compass, title: 'See your niche', body: 'The areas you keep choosing add up to your niche.' },
-  { icon: MessagesSquare, title: 'Review your picks', body: 'Write a review, ask questions, see where others land.' },
+  { icon: Layers, title: 'Explore broadly', body: 'Rate abstracts across many arXiv categories before drawing any conclusion.' },
+  { icon: Compass, title: 'Narrow down', body: 'Compare your interest in each category against your own average, with a confidence range.' },
+  { icon: MessagesSquare, title: 'Focus and review', body: 'Go deeper where the evidence is strong, and review those papers with others.' },
 ]
 
 export default async function Home() {
@@ -46,26 +46,24 @@ export default async function Home() {
         {/* hero */}
         <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
           <div className="text-center lg:text-left">
-            <span className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary-dark">
-              Real abstracts from arXiv
-            </span>
-            <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-primary-dark sm:text-6xl">
-              Swipe abstracts.
+            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-primary-dark sm:text-6xl">
+              Read abstracts.
               <br />
-              <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">Find your niche.</span>
+              <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">Map your interests.</span>
               <br />
-              Argue about it.
+              Review what you pick.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-gray-600 lg:mx-0">
-              Swipe right on research you&apos;d want to work on, left on what you wouldn&apos;t. Your swipes add up to
-              your niche. Then review the papers you picked with other researchers.
+              Rate abstracts from across arXiv, swipe right on work you&apos;d want to do and left on what you
+              wouldn&apos;t. Each rating is evidence for its arXiv category, and over many ratings you can see which
+              categories really stand out for you. Then review the papers you picked with other researchers.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               <Link
                 href="/swipe"
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-lg font-bold text-white shadow-lg shadow-primary/30 transition hover:-translate-y-0.5 hover:bg-primary-light"
               >
-                Start swiping free <ArrowRight className="h-5 w-5" />
+                Start rating abstracts <ArrowRight className="h-5 w-5" />
               </Link>
               <Link
                 href="/login"
@@ -74,7 +72,6 @@ export default async function Home() {
                 Log in
               </Link>
             </div>
-            <p className="mt-3 text-sm text-gray-500">No sign-up needed to start. Save your niche whenever you like.</p>
           </div>
           <SwipeDemo />
         </section>
@@ -158,15 +155,15 @@ export default async function Home() {
 
         {/* final CTA */}
         <section className="mt-20 rounded-3xl bg-gradient-to-r from-primary to-primary-light p-10 text-center text-white shadow-xl sm:p-12">
-          <h2 className="text-3xl font-bold sm:text-4xl">Ten swipes to your niche</h2>
+          <h2 className="text-3xl font-bold sm:text-4xl">A niche takes evidence</h2>
           <p className="mx-auto mt-3 max-w-xl text-white/85">
-            It takes about ten abstracts for your niche to show, and you don&apos;t need an account to start.
+            Start with a broad sample of arXiv, narrow down category by category, and see the numbers behind every step.
           </p>
           <Link
             href="/swipe"
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-lg font-bold text-primary shadow-lg transition hover:bg-gray-100"
           >
-            Start swiping <ArrowRight className="h-5 w-5" />
+            Start rating <ArrowRight className="h-5 w-5" />
           </Link>
         </section>
       </div>

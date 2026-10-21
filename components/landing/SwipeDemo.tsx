@@ -3,23 +3,25 @@
 import { useEffect, useState } from 'react'
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'framer-motion'
 import { Check, Heart, X } from 'lucide-react'
+import { areaLabel } from '@/lib/niche-core'
 
 // A scripted, looping demo of the swipe -> niche flow for the landing page.
 // Blurbs are our own one-line summaries of well-known papers (not quotes).
 const CARDS = [
-  { title: 'Attention Is All You Need', year: 2017, area: 'Natural Language Processing', blurb: 'A sequence model built entirely on attention, with no recurrence at all.', like: true },
-  { title: 'Deep Residual Learning for Image Recognition', year: 2015, area: 'Computer Vision', blurb: 'Skip connections that make very deep image networks trainable.', like: false },
-  { title: 'Language Models are Few-Shot Learners', year: 2020, area: 'Natural Language Processing', blurb: 'A very large language model that picks up new tasks from a few examples in the prompt.', like: true },
-  { title: 'Playing Atari with Deep Reinforcement Learning', year: 2013, area: 'Machine Learning', blurb: 'A deep network learns to play Atari games straight from the pixels.', like: false },
-  { title: 'BERT: Pre-training of Deep Bidirectional Transformers', year: 2018, area: 'Natural Language Processing', blurb: 'Pre-train a bidirectional Transformer on unlabelled text, then fine-tune it.', like: true },
-  { title: 'Concrete Problems in AI Safety', year: 2016, area: 'Artificial Intelligence', blurb: 'Five practical ways machine learning systems can behave in unintended ways.', like: true },
+  { title: 'Attention Is All You Need', year: 2017, area: 'cs.CL', blurb: 'A sequence model built entirely on attention, with no recurrence at all.', like: true },
+  { title: 'Deep Residual Learning for Image Recognition', year: 2015, area: 'cs.CV', blurb: 'Skip connections that make very deep image networks trainable.', like: false },
+  { title: 'Language Models are Few-Shot Learners', year: 2020, area: 'cs.CL', blurb: 'A very large language model that picks up new tasks from a few examples in the prompt.', like: true },
+  { title: 'Playing Atari with Deep Reinforcement Learning', year: 2013, area: 'cs.LG', blurb: 'A deep network learns to play Atari games straight from the pixels.', like: false },
+  { title: 'BERT: Pre-training of Deep Bidirectional Transformers', year: 2018, area: 'cs.CL', blurb: 'Pre-train a bidirectional Transformer on unlabelled text, then fine-tune it.', like: true },
+  { title: 'Concrete Problems in AI Safety', year: 2016, area: 'cs.AI', blurb: 'Five practical ways machine learning systems can behave in unintended ways.', like: true },
 ]
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 export function SwipeDemo() {
   const [i, setI] = useState(0)
-  const [liked, setLiked] = useState<string[]>([])
+  // ratings so far, per arXiv category: [interesting, rated]
+  const [rated, setRated] = useState<Record<string, [number, number]>>({})
   const reduce = useReducedMotion()
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-300, 300], [-16, 16])
@@ -46,7 +48,11 @@ export function SwipeDemo() {
       }
       if (cancelled) return
       const atEnd = (i + 1) % CARDS.length === 0
-      setLiked((prev) => (atEnd ? [] : card.like ? [...prev, card.area] : prev))
+      setRated((prev) => {
+        if (atEnd) return {}
+        const [l, n] = prev[card.area] ?? [0, 0]
+        return { ...prev, [card.area]: [l + (card.like ? 1 : 0), n + 1] }
+      })
       x.set(0)
       setI((n) => n + 1)
     })()
@@ -55,16 +61,15 @@ export function SwipeDemo() {
     }
   }, [i, card, reduce, x])
 
-  const counts = liked.reduce<Record<string, number>>((m, a) => ({ ...m, [a]: (m[a] ?? 0) + 1 }), {})
-  const total = liked.length || 1
-  const bars = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3)
+  const rows = Object.entries(rated).sort((a, b) => b[1][1] - a[1][1]).slice(0, 4)
+  const total = Object.values(rated).reduce((n, [, k]) => n + k, 0)
 
   return (
     <div className="relative mx-auto w-full max-w-md select-none" aria-label="Animated demo of swiping paper abstracts">
       <div className="relative h-[20rem]">
         {/* next card peeking out underneath */}
         <div className="absolute inset-0 translate-y-3 scale-[0.95] rounded-[2rem] border border-gray-200 bg-white p-6 shadow-lg">
-          <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">{next.area}</span>
+          <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">{areaLabel(next.area)} · {next.area}</span>
           <p className="mt-4 line-clamp-2 text-xl font-extrabold leading-tight text-gray-300">{next.title}</p>
         </div>
         <motion.div
@@ -82,7 +87,7 @@ export function SwipeDemo() {
               <X className="h-9 w-9" strokeWidth={3.5} />
             </motion.div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">{card.area}</span>
+              <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">{areaLabel(card.area)} · {card.area}</span>
               <span className="text-xs text-gray-400">{card.year}</span>
             </div>
             <h3 className="mt-4 text-xl font-extrabold leading-tight tracking-tight text-gray-900">{card.title}</h3>
@@ -102,20 +107,24 @@ export function SwipeDemo() {
 
       <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-md">
         <div className="flex items-baseline justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Your niche</p>
-          <p className="text-xs tabular-nums text-gray-400">{liked.length} yes</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Evidence by arXiv category</p>
+          <p className="text-xs tabular-nums text-gray-400">{total} rated</p>
         </div>
-        {bars.length === 0 ? (
-          <p className="mt-2 text-sm text-gray-400">Swipe right on a few abstracts…</p>
+        {rows.length === 0 ? (
+          <p className="mt-2 text-sm text-gray-400">Each rating adds a data point to its category…</p>
         ) : (
-          bars.map(([label, n], k) => (
-            <div key={label} className="mt-2">
+          rows.map(([code, [l, n]]) => (
+            <div key={code} className="mt-2">
               <div className="flex justify-between text-sm">
-                <span className={k === 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}>{label}</span>
-                <span className="tabular-nums text-gray-400">{Math.round((n / total) * 100)}%</span>
+                <span className="text-gray-700">
+                  {areaLabel(code)} <span className="text-xs text-gray-400">{code}</span>
+                </span>
+                <span className="tabular-nums text-gray-500">
+                  {l} of {n} interesting
+                </span>
               </div>
               <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-gray-100">
-                <div className={`h-full rounded-full transition-all duration-700 ${k === 0 ? 'bg-primary' : 'bg-primary-300'}`} style={{ width: `${(n / total) * 100}%` }} />
+                <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${(l / n) * 100}%` }} />
               </div>
             </div>
           ))
