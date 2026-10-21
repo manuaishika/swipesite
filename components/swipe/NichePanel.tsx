@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, Compass, MessagesSquare } from 'lucide-react'
 import { NICHE_READY_AFTER, type Niche } from '@/lib/niche-core'
 
-export function NichePanel({ niche, compact = false }: { niche: Niche; compact?: boolean }) {
+export function NichePanel({ niche, compact = false, guest = false }: { niche: Niche; compact?: boolean; guest?: boolean }) {
   const progress = Math.min(1, niche.swipes / NICHE_READY_AFTER)
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -75,7 +75,16 @@ export function NichePanel({ niche, compact = false }: { niche: Niche; compact?:
         </div>
       )}
 
-      {!compact && (
+      {!compact && guest && (
+        <div className="mt-5 border-t border-gray-100 pt-4">
+          <Link href="/register" className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-light">
+            Save my niche <ArrowRight className="h-4 w-4" />
+          </Link>
+          <p className="mt-2 text-center text-xs text-gray-500">Free account. Your guest swipes come with you.</p>
+        </div>
+      )}
+
+      {!compact && !guest && (
         <div className="mt-5 space-y-1 border-t border-gray-100 pt-4 text-sm">
           <Link href="/niche" className="flex items-center justify-between rounded-lg px-2 py-1.5 font-medium text-primary hover:bg-primary-50">
             See my niche <ArrowRight className="h-4 w-4" />

@@ -47,6 +47,7 @@ const secondaryNavItems = [
 
 const publicNavItems = [
   { href: '/', label: 'Home', icon: Home },
+  { href: '/swipe', label: 'Try swiping', icon: Layers },
   { href: '/conferences', label: 'Conferences', icon: Calendar },
   { href: '/opportunities', label: 'Opportunities', icon: Mail },
 ]

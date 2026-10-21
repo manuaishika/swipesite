@@ -1,6 +1,5 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { SwipeDeck } from '@/components/swipe/SwipeDeck'
@@ -14,8 +13,9 @@ export const dynamic = 'force-dynamic'
 export default async function SwipePage() {
   const session = await getServerSession(authOptions)
 
+  // Guests can swipe straight away; their swipes are saved to the account after sign-up.
   if (!session) {
-    redirect('/login')
+    return <GuestSwipePage />
   }
 
   let papers: any[] = []
@@ -71,7 +71,7 @@ export default async function SwipePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Find your niche</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Find your niche</h1>
         <p className="mt-1 text-gray-600">
           Read the abstract. Swipe right if you&apos;d want to work on it, left if not. Your niche builds as you go.
         </p>
@@ -84,6 +84,41 @@ export default async function SwipePage() {
         </div>
       ) : (
         <SwipeDeck initialPapers={papers} initialTally={tally} />
+      )}
+    </div>
+  )
+}
+
+async function GuestSwipePage() {
+  let papers: any[] = []
+  try {
+    const rows = await prisma.paper.findMany({
+      include: { likes: { where: { liked: true }, select: { id: true } } },
+      take: 40,
+      orderBy: { createdAt: 'desc' },
+    })
+    papers = transformPapers(rows)
+  } catch (error) {
+    console.error('Database error in guest swipe page:', error)
+  }
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Find your niche</h1>
+        <p className="mt-1 text-gray-600">
+          No account needed. Read the abstract, swipe right if you&apos;d want to work on it, left if not.
+        </p>
+      </div>
+      {papers.length === 0 ? (
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-lg font-semibold text-gray-900">No papers to swipe yet</p>
+          <p className="mt-1 text-gray-500">
+            <Link href="/register" className="font-semibold text-primary hover:underline">Sign up</Link> to pull
+            papers in from arXiv.
+          </p>
+        </div>
+      ) : (
+        <SwipeDeck initialPapers={papers} initialTally={emptyTally()} guest />
       )}
     </div>
   )

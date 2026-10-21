@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation'
 import { getSafeServerSession } from '@/lib/safe-session'
 import Link from 'next/link'
+import { SwipeDemo } from '@/components/landing/SwipeDemo'
 import {
   ArrowRight,
   Bookmark,
   Calendar,
   Compass,
-  Heart,
   Layers,
   Mail,
   MessagesSquare,
@@ -14,7 +14,6 @@ import {
   Sparkles,
   ThumbsUp,
   Users,
-  X,
 } from 'lucide-react'
 
 const SECONDARY = [
@@ -43,35 +42,39 @@ export default async function Home() {
     <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-white">
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
         {/* hero */}
-        <section className="text-center">
-          <span className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary-dark">
-            Abstracts from arXiv
-          </span>
-          <h1 className="mx-auto mt-5 max-w-4xl text-4xl font-extrabold leading-tight text-primary-dark sm:text-6xl">
-            Find your research niche.
-            <br />
-            <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-              Then put it to peer review.
+        <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+          <div className="text-center lg:text-left">
+            <span className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary-dark">
+              Real abstracts from arXiv
             </span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-600">
-            Swipe through paper abstracts to discover the areas you actually want to work in. When you pick a paper,
-            review it with other researchers: what it claims, what holds up, and what doesn&apos;t.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-lg font-bold text-white shadow-lg transition hover:bg-primary-light"
-            >
-              Start swiping free <ArrowRight className="h-5 w-5" />
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center rounded-xl border-2 border-primary bg-white px-7 py-3.5 text-lg font-bold text-primary transition hover:bg-primary-50"
-            >
-              Log in
-            </Link>
+            <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-primary-dark sm:text-6xl">
+              Swipe abstracts.
+              <br />
+              <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">Find your niche.</span>
+              <br />
+              Argue about it.
+            </h1>
+            <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-gray-600 lg:mx-0">
+              Swipe right on research you&apos;d want to work on, left on what you wouldn&apos;t. Your swipes add up to
+              your niche. Then review the papers you picked with other researchers.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+              <Link
+                href="/swipe"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-lg font-bold text-white shadow-lg shadow-primary/30 transition hover:-translate-y-0.5 hover:bg-primary-light"
+              >
+                Start swiping free <ArrowRight className="h-5 w-5" />
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center rounded-xl border-2 border-primary bg-white px-7 py-3.5 text-lg font-bold text-primary transition hover:bg-primary-50"
+              >
+                Log in
+              </Link>
+            </div>
+            <p className="mt-3 text-sm text-gray-500">No sign-up needed to start. Save your niche whenever you like.</p>
           </div>
+          <SwipeDemo />
         </section>
 
         {/* how it works */}
@@ -87,62 +90,10 @@ export default async function Home() {
           ))}
         </ol>
 
-        {/* pillar 1 */}
-        <section className="mt-20 grid items-center gap-10 md:grid-cols-2">
-          <div>
-            <span className="text-sm font-semibold uppercase tracking-wide text-primary">1 · Find your niche</span>
-            <h2 className="mt-2 text-3xl font-bold text-primary-dark sm:text-4xl">Read the abstract. Swipe.</h2>
-            <p className="mt-4 text-lg leading-relaxed text-gray-600">
-              Every card is a real arXiv abstract, shown in full. Your swipes build a live picture of the research areas
-              you lean towards, and once it&apos;s clear, your deck leads with papers in your niche while still mixing in
-              something new.
-            </p>
-          </div>
-          <div className="relative rounded-3xl bg-gradient-to-br from-primary/10 to-accent-light/10 p-6 sm:p-8">
-            <div className="rounded-2xl bg-white p-6 shadow-xl">
-              <div className="flex gap-1.5">
-                <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-white">In your niche</span>
-                <span className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700">Natural Language Processing</span>
-              </div>
-              <h3 className="mt-3 text-lg font-bold text-gray-900">Attention Is All You Need</h3>
-              <p className="mt-2 line-clamp-3 text-sm text-gray-600">
-                We propose a new simple network architecture, the Transformer, based solely on attention mechanisms,
-                dispensing with recurrence and convolutions entirely...
-              </p>
-              <div className="mt-5 flex justify-center gap-5">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-rose-200 text-rose-500">
-                  <X className="h-6 w-6" />
-                </span>
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white">
-                  <Heart className="h-6 w-6" />
-                </span>
-              </div>
-            </div>
-            <div className="mt-4 rounded-2xl bg-white p-4 shadow-md">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">You lean towards</p>
-              {[
-                ['Natural Language Processing', 58],
-                ['Machine Learning', 27],
-                ['Computers & Society', 15],
-              ].map(([label, pct]) => (
-                <div key={label as string} className="mt-2">
-                  <div className="flex justify-between text-sm text-gray-700">
-                    <span>{label}</span>
-                    <span className="text-gray-400">{pct}%</span>
-                  </div>
-                  <div className="mt-1 h-1.5 rounded-full bg-gray-100">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* pillar 2 */}
         <section className="mt-20 grid items-center gap-10 md:grid-cols-2">
           <div className="md:order-2">
-            <span className="text-sm font-semibold uppercase tracking-wide text-primary">2 · Peer review</span>
+            <span className="text-sm font-semibold uppercase tracking-wide text-primary">Peer review</span>
             <h2 className="mt-2 text-3xl font-bold text-primary-dark sm:text-4xl">You picked it. Now argue about it.</h2>
             <p className="mt-4 text-lg leading-relaxed text-gray-600">
               Every paper has a review thread. Write a structured review with a verdict, ask a question, or start a
@@ -207,13 +158,13 @@ export default async function Home() {
         <section className="mt-20 rounded-3xl bg-gradient-to-r from-primary to-primary-light p-10 text-center text-white shadow-xl sm:p-12">
           <h2 className="text-3xl font-bold sm:text-4xl">Ten swipes to your niche</h2>
           <p className="mx-auto mt-3 max-w-xl text-white/85">
-            It takes about ten abstracts for your niche to show. Then pick a paper and write your first review.
+            It takes about ten abstracts for your niche to show, and you don&apos;t need an account to start.
           </p>
           <Link
-            href="/register"
+            href="/swipe"
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-lg font-bold text-primary shadow-lg transition hover:bg-gray-100"
           >
-            Get started free <ArrowRight className="h-5 w-5" />
+            Start swiping <ArrowRight className="h-5 w-5" />
           </Link>
         </section>
       </div>
