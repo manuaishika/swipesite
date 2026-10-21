@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import { animate, motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion'
-import { Calendar, ExternalLink, Users } from 'lucide-react'
+import { Calendar, Check, ExternalLink, Users, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { areaLabel } from '@/lib/niche-core'
 
@@ -93,18 +93,20 @@ export function SwipeCard({ paper, inNiche, onDecide, registerFling, returnFrom 
         <motion.div style={{ opacity: yesTint }} className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-l from-emerald-400 to-transparent" />
         <motion.div style={{ opacity: nopeTint }} className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-rose-400 to-transparent" />
 
-        {/* stamps */}
+        {/* check / cross badges that grow as you drag */}
         <motion.div
+          data-stamp="yes"
           style={{ opacity: yesOpacity, scale: yesScale }}
-          className="pointer-events-none absolute left-6 top-8 z-20 -rotate-12 rounded-2xl border-[5px] border-emerald-500 bg-white/80 px-4 py-1.5 text-3xl font-black uppercase tracking-wider text-emerald-500 sm:text-4xl"
+          className="pointer-events-none absolute left-6 top-6 z-20 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xl ring-4 ring-white"
         >
-          Yes!
+          <Check className="h-11 w-11" strokeWidth={3.5} />
         </motion.div>
         <motion.div
+          data-stamp="no"
           style={{ opacity: nopeOpacity, scale: nopeScale }}
-          className="pointer-events-none absolute right-6 top-8 z-20 rotate-12 rounded-2xl border-[5px] border-rose-500 bg-white/80 px-4 py-1.5 text-3xl font-black uppercase tracking-wider text-rose-500 sm:text-4xl"
+          className="pointer-events-none absolute right-6 top-6 z-20 flex h-20 w-20 items-center justify-center rounded-full bg-rose-500 text-white shadow-xl ring-4 ring-white"
         >
-          Nope
+          <X className="h-11 w-11" strokeWidth={3.5} />
         </motion.div>
 
         <div className="px-6 pt-6 sm:px-8 sm:pt-8">

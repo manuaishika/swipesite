@@ -1,7 +1,7 @@
 // Guest swiping: decisions live in localStorage until the user signs up or logs in,
 // then GuestSwipeImporter saves them to the account.
 
-export type GuestSwipe = { paperId: string; liked: boolean; categories: string[]; keywords: string[] }
+export type GuestSwipe = { paperId: string; liked: boolean; categories: string[]; keywords: string[]; title?: string }
 
 const KEY = 'rs-guest-swipes-v1'
 

@@ -88,7 +88,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
     (liked: boolean) => {
       const paper = papers[index]
       if (!paper) return
-      const swipe: GuestSwipe = { paperId: paper.id, liked, categories: paper.categories, keywords: paper.keywords }
+      const swipe: GuestSwipe = { paperId: paper.id, liked, categories: paper.categories, keywords: paper.keywords, title: paper.title }
       setReturnFrom(0)
       setIndex((i) => i + 1)
       setTally((t) => applySwipe(t, swipe))
@@ -135,7 +135,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
     if (guest) writeGuestSwipes(readGuestSwipes().filter((s) => s.paperId !== last.paper.id))
   }, [history, guest])
 
-  // Keyboard: <- nope, -> yes, z / backspace undo.
+  // Keyboard: <- skip, -> interested, z / backspace undo.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
@@ -244,7 +244,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
             onClick={() => decide(false)}
             disabled={!current}
             aria-label="Skip"
-            title="Nope (←)"
+            title="Skip (←)"
             className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full border-2 border-rose-200 bg-white text-rose-500 shadow-lg transition hover:scale-110 hover:border-rose-400 hover:bg-rose-50 disabled:opacity-40"
           >
             <X className="h-9 w-9" strokeWidth={3} />
@@ -254,7 +254,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
             onClick={() => decide(true)}
             disabled={!current}
             aria-label="Interested"
-            title="Yes (→)"
+            title="Interested (→)"
             className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white shadow-lg shadow-primary/30 transition hover:scale-110 disabled:opacity-40"
           >
             <Heart className="h-9 w-9 fill-current" />
@@ -264,7 +264,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
           </span>
         </div>
         <p className="mt-3 hidden text-center text-xs text-gray-400 sm:block">
-          Drag the card, or press <kbd className="rounded border px-1">←</kbd> nope · <kbd className="rounded border px-1">→</kbd> yes ·{' '}
+          Drag the card, or press <kbd className="rounded border px-1">←</kbd> skip · <kbd className="rounded border px-1">→</kbd> interested ·{' '}
           <kbd className="rounded border px-1">Z</kbd> undo
         </p>
 

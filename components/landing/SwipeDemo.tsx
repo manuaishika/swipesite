@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'framer-motion'
-import { Heart, X } from 'lucide-react'
+import { Check, Heart, X } from 'lucide-react'
 
 // A scripted, looping demo of the swipe -> niche flow for the landing page.
 // Blurbs are our own one-line summaries of well-known papers (not quotes).
@@ -25,6 +25,8 @@ export function SwipeDemo() {
   const rotate = useTransform(x, [-300, 300], [-16, 16])
   const yes = useTransform(x, [15, 90], [0, 1])
   const nope = useTransform(x, [-90, -15], [1, 0])
+  const yesScale = useTransform(x, [15, 140], [0.5, 1.1])
+  const noScale = useTransform(x, [-140, -15], [1.1, 0.5])
 
   const card = CARDS[i % CARDS.length]
   const next = CARDS[(i + 1) % CARDS.length]
@@ -32,15 +34,15 @@ export function SwipeDemo() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      await wait(1400)
+      await wait(650)
       if (cancelled) return
       const dir = card.like ? 1 : -1
       if (!reduce) {
         // a little "considering it" wiggle, then the throw
-        await animate(x, dir * 70, { type: 'spring', stiffness: 300, damping: 18 })
-        await wait(280)
+        await animate(x, dir * 60, { type: 'spring', stiffness: 520, damping: 22 })
+        await wait(120)
         if (cancelled) return
-        await animate(x, dir * 650, { duration: 0.38, ease: [0.3, 0.6, 0.4, 1] })
+        await animate(x, dir * 650, { duration: 0.26, ease: [0.3, 0.6, 0.4, 1] })
       }
       if (cancelled) return
       const atEnd = (i + 1) % CARDS.length === 0
@@ -73,11 +75,11 @@ export function SwipeDemo() {
           className="absolute inset-0"
         >
           <motion.div style={{ x, rotate }} className="relative h-full overflow-hidden rounded-[2rem] border border-gray-200 bg-white p-6 shadow-2xl">
-            <motion.div style={{ opacity: yes }} className="absolute left-5 top-6 z-10 -rotate-12 rounded-xl border-4 border-emerald-500 bg-white/80 px-3 py-1 text-2xl font-black uppercase tracking-wider text-emerald-500">
-              Yes!
+            <motion.div data-stamp="yes" style={{ opacity: yes, scale: yesScale }} className="absolute left-5 top-5 z-10 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg ring-4 ring-white">
+              <Check className="h-9 w-9" strokeWidth={3.5} />
             </motion.div>
-            <motion.div style={{ opacity: nope }} className="absolute right-5 top-6 z-10 rotate-12 rounded-xl border-4 border-rose-500 bg-white/80 px-3 py-1 text-2xl font-black uppercase tracking-wider text-rose-500">
-              Nope
+            <motion.div data-stamp="no" style={{ opacity: nope, scale: noScale }} className="absolute right-5 top-5 z-10 flex h-16 w-16 items-center justify-center rounded-full bg-rose-500 text-white shadow-lg ring-4 ring-white">
+              <X className="h-9 w-9" strokeWidth={3.5} />
             </motion.div>
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">{card.area}</span>
