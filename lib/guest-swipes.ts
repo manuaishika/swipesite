@@ -23,3 +23,25 @@ export function writeGuestSwipes(swipes: GuestSwipe[]) {
     // storage unavailable (private mode etc.): guest swipes just won't survive a reload
   }
 }
+
+// Papers a guest saved for later (with tags); imported to the account on sign-in like swipes.
+export type GuestSave = { paperId: string; title: string; tags: string[] }
+const SAVES_KEY = 'rs-guest-saves-v1'
+
+export function readGuestSaves(): GuestSave[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SAVES_KEY) || '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+export function writeGuestSaves(saves: GuestSave[]) {
+  try {
+    if (saves.length) localStorage.setItem(SAVES_KEY, JSON.stringify(saves))
+    else localStorage.removeItem(SAVES_KEY)
+  } catch {
+    // storage unavailable: guest saves just won't survive a reload
+  }
+}

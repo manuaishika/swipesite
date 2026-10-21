@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { cleanTags } from '@/lib/saved-tags'
 
 export async function POST(request: Request) {
   try {
@@ -11,9 +12,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { paperId, saved } = await request.json()
+    const { paperId, saved, tags: rawTags } = await request.json()
+    const tags = cleanTags(rawTags)
 
-    if (!paperId || typeof saved !== 'boolean') {
+    if (!paperId || typeof saved !== 'boolean' || tags === null) {
       return NextResponse.json(
         { error: 'Invalid request data' },
         { status: 400 }
@@ -28,10 +30,12 @@ export async function POST(request: Request) {
             paperId,
           },
         },
-        update: {},
+        // re-saving updates the tags
+        update: rawTags === undefined ? {} : { tags: JSON.stringify(tags) },
         create: {
           userId: session.user.id,
           paperId,
+          tags: JSON.stringify(tags),
         },
       })
 

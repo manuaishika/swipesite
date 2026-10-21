@@ -1,11 +1,13 @@
 import { getSafeServerSession } from '@/lib/safe-session'
 import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
-import { transformPapers } from '@/lib/paper-helpers'
+import { transformPaper } from '@/lib/paper-helpers'
+import { stringToArray } from '@/lib/json-helpers'
+import { displayKeywords } from '@/lib/abstract-points'
 import Link from 'next/link'
 import { BookOpen, ExternalLink } from 'lucide-react'
 
-export default async function CollectionPage() {
+export default async function CollectionPage({ searchParams }: { searchParams: { tag?: string } }) {
   const session = await getSafeServerSession()
 
   if (!session) {
@@ -65,57 +67,72 @@ export default async function CollectionPage() {
     )
   }
 
-  const papers = transformPapers(savedPapers.map((sp) => sp.paper))
+  // Each saved paper carries the user's tags; liked papers that were auto-saved have none.
+  const items = savedPapers.map((sp) => ({ paper: transformPaper(sp.paper), tags: stringToArray(sp.tags) }))
+  const allTags = Array.from(new Set(items.flatMap((i) => i.tags))).sort()
+  const activeTag = searchParams.tag && allTags.includes(searchParams.tag) ? searchParams.tag : null
+  const shown = activeTag ? items.filter((i) => i.tags.includes(activeTag)) : items
+  const chip = (on: boolean) =>
+    `rounded-full px-3 py-1 text-sm font-medium ${on ? 'bg-primary text-white' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:ring-primary'}`
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">My Collection</h1>
-        <p className="text-gray-600">
-          Papers you&apos;ve swiped right on and saved to your collection
-        </p>
+    <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Collection</h1>
+        <p className="mt-1 text-gray-600">Papers you saved for later or marked interesting.</p>
       </div>
 
-      {papers.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {papers.map((paper) => (
-            <div
-              key={paper.id}
-              className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
-            >
-              <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
-                {paper.title}
-              </h3>
-              <p className="text-sm text-gray-600 mb-3 line-clamp-3">{paper.abstract}</p>
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
-                {paper.keywords.slice(0, 3).map((keyword: string, idx: number) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full"
-                  >
-                    {keyword}
+      {allTags.length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-2">
+          <Link href="/collection" className={chip(!activeTag)}>
+            All {items.length}
+          </Link>
+          {allTags.map((t) => (
+            <Link key={t} href={`/collection?tag=${encodeURIComponent(t)}`} className={chip(activeTag === t)}>
+              {t} {items.filter((i) => i.tags.includes(t)).length}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {shown.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {shown.map(({ paper, tags }) => (
+            <div key={paper.id} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              {tags.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-1">
+                  {tags.map((t) => (
+                    <span key={t} className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <h3 className="line-clamp-2 font-semibold leading-snug text-gray-900">{paper.title}</h3>
+              <p className="mt-2 line-clamp-3 text-sm text-gray-600">{paper.abstract}</p>
+              <div className="mt-3 flex flex-wrap gap-1">
+                {displayKeywords(paper.keywords, 3).map((k: string) => (
+                  <span key={k} className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+                    {k}
                   </span>
                 ))}
               </div>
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                <span>{paper.authors.slice(0, 2).join(', ')}</span>
-                <span>{paper.likes.length} likes</span>
-              </div>
-              <div className="flex gap-2">
+              <div className="mt-auto flex gap-2 pt-4">
                 <Link
                   href={`/paper/${paper.id}`}
-                  className="flex-1 text-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                  className="flex-1 rounded-lg bg-primary px-4 py-2 text-center text-sm font-medium text-white hover:bg-primary-light"
                 >
-                  View Details
+                  Open
                 </Link>
                 {paper.pdfUrl && (
                   <a
                     href={paper.pdfUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-50"
+                    aria-label="PDF"
                   >
-                    <ExternalLink className="w-4 h-4" />
+                    <ExternalLink className="h-4 w-4" />
                   </a>
                 )}
               </div>
@@ -123,17 +140,12 @@ export default async function CollectionPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">Your collection is empty</p>
-          <p className="text-gray-400 mt-2 mb-6">
-            Start swiping right on papers to build your collection!
-          </p>
-          <Link
-            href="/swipe"
-            className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Start Swiping
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white/60 py-12 text-center">
+          <BookOpen className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+          <p className="text-gray-700">Nothing saved yet</p>
+          <p className="mt-1 text-sm text-gray-500">Use &ldquo;Save for later&rdquo; on a card while you rate abstracts.</p>
+          <Link href="/swipe" className="mt-5 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-light">
+            Rate abstracts
           </Link>
         </div>
       )}

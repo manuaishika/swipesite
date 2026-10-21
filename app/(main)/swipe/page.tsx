@@ -65,6 +65,7 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
   let papers: any[] = []
   let tally: NicheTally = emptyTally()
   let fields: { id: string; label: string; count: number }[] = []
+  let saved: Record<string, string[]> = {}
   let dbError: string | null = null
 
   try {
@@ -86,6 +87,11 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
 
     // Order by the stage of the method: spread across categories first, then test the uncertain ones.
     papers = orderDeck(transformPapers(candidates), nicheFromTally(tally)).slice(0, 40)
+    const savedRows = await prisma.savedPaper.findMany({
+      where: { userId: session.user.id, paperId: { in: papers.map((p) => p.id) } },
+      select: { paperId: true, tags: true },
+    })
+    saved = Object.fromEntries(savedRows.map((r) => [r.paperId, stringToArray(r.tags)]))
   } catch (error: any) {
     console.error('Database error in swipe page:', error)
     dbError = error.message || 'Database connection failed'
@@ -117,8 +123,8 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-5">
-        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Rate abstracts</h1>
-        <p className="mt-1 text-gray-600">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">Rate abstracts</h1>
+        <p className="mt-1 hidden text-gray-600 sm:block">
           Read the abstract. Swipe right if you&apos;d want to work on it, left if not. Each rating adds evidence to
           its arXiv category.
         </p>
@@ -131,7 +137,7 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
           <FetchArxivButton />
         </div>
       ) : (
-        <SwipeDeck key={field ?? 'all'} initialPapers={papers} initialTally={tally} />
+        <SwipeDeck key={field ?? 'all'} initialPapers={papers} initialTally={tally} initialSaved={saved} />
       )}
     </div>
   )
@@ -156,8 +162,8 @@ async function GuestSwipePage({ field }: { field?: string }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-5">
-        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Rate abstracts</h1>
-        <p className="mt-1 text-gray-600">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">Rate abstracts</h1>
+        <p className="mt-1 hidden text-gray-600 sm:block">
           Read the abstract, swipe right if you&apos;d want to work on it, left if not. Each rating adds evidence to its
           arXiv category.
         </p>

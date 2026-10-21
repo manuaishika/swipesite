@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Heart, Loader2, MessagesSquare, PartyPopper, RotateCcw, X } from 'lucide-react'
 import { applySwipe, categoryEvidence, emptyTally, nicheFromTally, type NicheTally } from '@/lib/niche-core'
-import { readGuestSwipes, writeGuestSwipes, type GuestSwipe } from '@/lib/guest-swipes'
+import { readGuestSaves, readGuestSwipes, writeGuestSaves, writeGuestSwipes, type GuestSwipe } from '@/lib/guest-swipes'
 import { NichePanel } from './NichePanel'
 import { StackedCard, SwipeCard, type SwipePaper } from './SwipeCard'
 
@@ -14,11 +14,13 @@ type Paper = SwipePaper & { keywords: string[] }
 type Props = {
   initialPapers: Paper[]
   initialTally: NicheTally
+  /** Tags of papers in the deck the user already saved for later (logged-in users). */
+  initialSaved?: Record<string, string[]>
   /** Guest mode: no account; swipes stay in this browser until sign-up. */
   guest?: boolean
 }
 
-export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props) {
+export function SwipeDeck({ initialPapers, initialTally, initialSaved = {}, guest = false }: Props) {
   const [papers, setPapers] = useState(initialPapers)
   const [index, setIndex] = useState(0)
   const [tally, setTally] = useState(initialTally)
@@ -27,6 +29,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
   const [lastPick, setLastPick] = useState<Paper | null>(null)
   const [fetchingMore, setFetchingMore] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [saved, setSaved] = useState<Record<string, string[]>>(initialSaved)
   const flingRef = useRef<((liked: boolean) => void) | null>(null)
   const registerFling = useCallback((f: ((liked: boolean) => void) | null) => {
     flingRef.current = f
@@ -38,6 +41,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
   // Guest: restore swipes from this browser and drop already-swiped papers from the deck.
   useEffect(() => {
     if (!guest) return
+    setSaved(Object.fromEntries(readGuestSaves().map((g) => [g.paperId, g.tags])))
     const saved = readGuestSwipes()
     if (!saved.length) return
     const done = new Set(saved.map((s) => s.paperId))
@@ -113,6 +117,29 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
     [papers, index, commit]
   )
 
+  // Save for later (with tags) without rating the paper; tags === null removes it.
+  const savePaper = useCallback(
+    (paper: Paper, tags: string[] | null) => {
+      setSaved((cur) => {
+        const next = { ...cur }
+        if (tags) next[paper.id] = tags
+        else delete next[paper.id]
+        return next
+      })
+      if (guest) {
+        const rest = readGuestSaves().filter((g) => g.paperId !== paper.id)
+        writeGuestSaves(tags ? [...rest, { paperId: paper.id, title: paper.title, tags }] : rest)
+      } else {
+        fetch('/api/papers/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paperId: paper.id, saved: Boolean(tags), tags: tags ?? undefined }),
+        }).catch((e) => console.error('Error saving paper:', e))
+      }
+    },
+    [guest]
+  )
+
   const undo = useCallback(() => {
     const last = history[history.length - 1]
     if (!last) return
@@ -149,18 +176,18 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div>
         {guest && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary-50 px-4 py-3 text-sm">
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary-50 px-3 py-2 text-xs sm:mb-4 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm">
             <span className="text-gray-800">
-              <strong>Swiping as a guest.</strong> Your swipes are kept in this browser. Sign up to keep your ratings and
-              review papers with others.
+              <strong className="font-medium">Rating as a guest.</strong>
+              <span className="hidden sm:inline"> Your ratings are kept in this browser. Sign up to keep them and join discussions.</span>
             </span>
-            <Link href="/register" className="rounded-lg bg-primary px-3 py-1.5 font-semibold text-white hover:bg-primary-light">
-              Sign up free
+            <Link href="/register" className="shrink-0 rounded-lg bg-primary px-3 py-1.5 font-medium text-white hover:bg-primary-light">
+              Sign up
             </Link>
           </div>
         )}
 
-        <div className="relative mx-auto h-[31rem] max-w-2xl sm:h-[35rem]">
+        <div className="relative mx-auto h-[calc(100svh-17rem)] min-h-[24rem] max-h-[36rem] max-w-2xl sm:h-[36rem]">
           {current ? (
             <>
               {papers[index + 2] && <StackedCard key={papers[index + 2].id + '-2'} paper={papers[index + 2]} depth={2} />}
@@ -172,12 +199,14 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
                 onDecide={commit}
                 registerFling={registerFling}
                 returnFrom={returnFrom}
+                savedTags={saved[current.id] ?? null}
+                onSave={(tags) => savePaper(current, tags)}
               />
             </>
           ) : (
             <div className="flex h-full flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-gray-300 bg-white/60 p-8 text-center">
               <PartyPopper className="h-10 w-10 text-primary" />
-              <p className="mt-3 text-xl font-extrabold text-gray-900">You swiped the whole deck!</p>
+              <p className="mt-3 text-xl font-semibold text-gray-900">You swiped the whole deck!</p>
               <p className="mt-1 max-w-sm text-sm text-gray-500">
                 {guest
                   ? 'Sign up to keep your ratings, get fresh papers and review the ones you picked.'
@@ -185,7 +214,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
               </p>
               <div className="mt-5 flex flex-wrap justify-center gap-3">
                 {guest ? (
-                  <Link href="/register" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-primary-light">
+                  <Link href="/register" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-light">
                     Save my progress <ArrowRight className="h-4 w-4" />
                   </Link>
                 ) : (
@@ -193,14 +222,14 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
                     <button
                       onClick={fetchMore}
                       disabled={fetchingMore}
-                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-primary-light disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-light disabled:opacity-50"
                     >
                       {fetchingMore && <Loader2 className="h-4 w-4 animate-spin" />}
                       {fetchingMore ? 'Fetching from arXiv...' : 'Fetch more from arXiv'}
                     </button>
                     <Link
                       href="/discussions"
-                      className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50"
+                      className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50"
                     >
                       Review your picks <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -213,14 +242,14 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
         </div>
 
         {/* actions */}
-        <div className="mt-8 flex items-center justify-center gap-5 sm:gap-7">
+        <div className="mt-6 flex items-center justify-center gap-4 sm:mt-8 sm:gap-7">
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={undo}
             disabled={history.length === 0}
             aria-label="Undo last swipe"
             title="Undo (Z)"
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-amber-500 shadow-md transition hover:scale-110 disabled:opacity-40 disabled:hover:scale-100"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-amber-500 shadow-md transition hover:scale-110 disabled:opacity-40 disabled:hover:scale-100"
           >
             <RotateCcw className="h-5 w-5" />
           </motion.button>
@@ -230,9 +259,9 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
             disabled={!current}
             aria-label="Skip"
             title="Skip (←)"
-            className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full border-2 border-rose-200 bg-white text-rose-500 shadow-lg transition hover:scale-110 hover:border-rose-400 hover:bg-rose-50 disabled:opacity-40"
+            className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-rose-200 sm:h-16 sm:w-16 bg-white text-rose-500 shadow-lg transition hover:scale-110 hover:border-rose-400 hover:bg-rose-50 disabled:opacity-40"
           >
-            <X className="h-9 w-9" strokeWidth={3} />
+            <X className="h-7 w-7" strokeWidth={2.5} />
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.85 }}
@@ -240,9 +269,9 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
             disabled={!current}
             aria-label="Interested"
             title="Interested (→)"
-            className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white shadow-lg shadow-primary/30 transition hover:scale-110 disabled:opacity-40"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br sm:h-16 sm:w-16 from-emerald-400 to-primary text-white shadow-lg shadow-primary/30 transition hover:scale-110 disabled:opacity-40"
           >
-            <Heart className="h-9 w-9 fill-current" />
+            <Heart className="h-7 w-7 fill-current" />
           </motion.button>
           <span className="flex h-12 w-12 items-center justify-center text-xs font-semibold tabular-nums text-gray-400">
             {current ? `${index + 1}/${papers.length}` : ''}
@@ -266,7 +295,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
               <span className="min-w-0 flex-1 truncate text-gray-800">
                 Picked <strong className="font-semibold">{lastPick.title}</strong>
               </span>
-              <Link href={discussHref(lastPick.id)} className="inline-flex shrink-0 items-center gap-1 font-bold text-primary hover:underline">
+              <Link href={discussHref(lastPick.id)} className="inline-flex shrink-0 items-center gap-1 font-semibold text-primary hover:underline">
                 <MessagesSquare className="h-4 w-4" /> {guest ? 'Sign up to discuss' : 'Discuss'}
               </Link>
             </motion.div>

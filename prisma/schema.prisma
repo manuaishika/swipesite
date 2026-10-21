@@ -40,6 +40,7 @@ model User {
   practiceReviews     PracticeReview[]
   practiceReports     PracticeReport[]
   practiceRateEvents  PracticeRateEvent[]
+  opportunities       Opportunity[]
 }
 
 model Paper {
@@ -88,6 +89,7 @@ model SavedPaper {
   id        String   @id @default(cuid())
   userId    String
   paperId   String
+  tags      String   @default("[]") // JSON array of the user's own labels, e.g. ["Read later","Methods"]
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -337,4 +339,22 @@ model PracticeRateEvent {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, action, createdAt])
+}
+
+// Community-posted research opportunities (internships, PhD/postdoc positions, collaborations).
+// Listings past their deadline are hidden from the main list automatically.
+model Opportunity {
+  id           String    @id @default(cuid())
+  userId       String
+  title        String
+  organization String
+  type         String    // "internship" | "phd" | "postdoc" | "job" | "collaboration" | "other"
+  url          String
+  description  String
+  deadline     DateTime? // null = rolling / no fixed deadline
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([deadline])
 }
