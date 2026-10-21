@@ -2,6 +2,7 @@
 
 import { ExternalLink, BookmarkPlus, Bookmark } from 'lucide-react'
 import { useState } from 'react'
+import { eventEnd, eventStart, firstDeadline } from '@/lib/event-dates'
 
 type Conference = {
   name: string
@@ -223,121 +224,103 @@ export default function ConferencesPage() {
   ]
 
   const categories = ['all', 'machine learning', 'artificial intelligence', 'computer vision', 'NLP', 'robotics', 'HCI', 'workshops']
-  
-  const filteredConferences = filter === 'all' 
-    ? conferences 
-    : conferences.filter(c => c.category === filter)
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-primary-dark mb-2">Call For Papers</h1>
-        <p className="text-gray-600">
-          Browse upcoming conferences and workshops. Click <BookmarkPlus className="inline w-4 h-4" /> to save to your watchlist.
+  // Work out from today's date what is upcoming and which deadlines are still open.
+  const now = new Date()
+  const dated = conferences
+    .filter((c) => filter === 'all' || c.category === filter)
+    .map((c) => ({ ...c, start: eventStart(c.when), end: eventEnd(c.when), due: firstDeadline(c.deadline) }))
+  const upcoming = dated
+    .filter((c) => !c.end || c.end >= now)
+    .sort((a, b) => (a.start?.getTime() ?? Infinity) - (b.start?.getTime() ?? Infinity))
+  const past = dated.filter((c) => c.end && c.end < now).sort((a, b) => b.end!.getTime() - a.end!.getTime())
+
+  const deadlineBadge = (due: Date | null, text: string) => {
+    if (!due) return <span className="text-sm text-gray-600">{text}</span>
+    const days = Math.ceil((due.getTime() - now.getTime()) / 86400000)
+    if (days < 0) return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">Submissions closed</span>
+    return (
+      <span className="inline-flex flex-wrap items-center gap-1.5 text-sm text-gray-700">
+        {text}
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${days <= 14 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+          {days === 0 ? 'closes today' : `closes in ${days} day${days === 1 ? '' : 's'}`}
+        </span>
+      </span>
+    )
+  }
+
+  const Row = ({ conf }: { conf: (typeof dated)[number] }) => (
+    <li className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:gap-4">
+      <div className="min-w-0 flex-1">
+        <a href={conf.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline">
+          {conf.name} <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+        <p className="mt-0.5 text-sm text-gray-600">
+          {conf.when} · {conf.where}
         </p>
       </div>
+      <div className="sm:w-72">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">Deadline</p>
+        {deadlineBadge(conf.due, conf.deadline)}
+      </div>
+      <button
+        onClick={() => toggleSave(conf.name)}
+        className={`self-start rounded-lg p-2 transition sm:self-center ${
+          savedConferences.includes(conf.name) ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        }`}
+        title={savedConferences.includes(conf.name) ? 'Remove from watchlist' : 'Add to watchlist'}
+        aria-label={savedConferences.includes(conf.name) ? 'Remove from watchlist' : 'Add to watchlist'}
+      >
+        {savedConferences.includes(conf.name) ? <Bookmark className="h-4 w-4" /> : <BookmarkPlus className="h-4 w-4" />}
+      </button>
+    </li>
+  )
 
-      {/* Category Filter */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        {categories.map(cat => (
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <h1 className="text-2xl font-semibold text-primary-dark sm:text-3xl">Conferences & deadlines</h1>
+      <p className="mt-1 text-gray-600">Upcoming conferences and workshops, sorted by date. Past events are tucked away automatically.</p>
+      <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        Dates and locations are compiled by hand and can change. Always confirm on the official site before planning.
+      </p>
+
+      <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+        {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setFilter(cat)}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              filter === cat
-                ? 'bg-primary text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+              filter === cat ? 'bg-primary text-white' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:ring-primary'
             }`}
           >
-            {cat === 'all' ? 'All' : cat.toUpperCase()}
+            {cat === 'all' ? 'All' : cat === 'NLP' || cat === 'HCI' ? cat : cat[0].toUpperCase() + cat.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* WikiCFP-style Table */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-primary text-white">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold">Event</th>
-                <th className="px-4 py-3 text-left font-semibold">When</th>
-                <th className="px-4 py-3 text-left font-semibold">Where</th>
-                <th className="px-4 py-3 text-left font-semibold">Deadline</th>
-                <th className="px-4 py-3 text-center font-semibold w-20"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredConferences.map((conf, idx) => (
-                <tr 
-                  key={idx}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-4 py-3">
-                    <a 
-                      href={conf.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary-light font-medium flex items-center gap-2 group"
-                    >
-                      {conf.name}
-                      <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </a>
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {conf.when}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {conf.where}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {conf.deadline}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => toggleSave(conf.name)}
-                      className={`p-2 rounded-lg transition-all ${
-                        savedConferences.includes(conf.name)
-                          ? 'bg-primary text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                      title={savedConferences.includes(conf.name) ? 'Remove from watchlist' : 'Add to watchlist'}
-                    >
-                      {savedConferences.includes(conf.name) ? (
-                        <Bookmark className="w-4 h-4 fill-current" />
-                      ) : (
-                        <BookmarkPlus className="w-4 h-4" />
-                      )}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Saved conferences count */}
-      {savedConferences.length > 0 && (
-        <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
-          <p className="text-primary-dark font-medium">
-            📌 You have {savedConferences.length} conference{savedConferences.length > 1 ? 's' : ''} in your watchlist
-          </p>
-          <p className="text-sm text-gray-600 mt-1">
-            Sign up to save your watchlist permanently and receive deadline reminders.
-          </p>
-        </div>
+      <h2 className="mt-6 text-sm font-medium text-gray-500">Upcoming · {upcoming.length}</h2>
+      {upcoming.length ? (
+        <ul className="mt-2 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+          {upcoming.map((c) => (
+            <Row key={c.name} conf={c} />
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 rounded-2xl border border-dashed border-gray-300 p-6 text-sm text-gray-600">
+          Nothing upcoming in this list. Next editions are added once their dates are announced.
+        </p>
       )}
 
-      {/* Footer note */}
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-sm text-gray-600">
-          <strong>Note:</strong> Deadlines shown are approximate and may include multiple phases (abstract/paper). 
-          Always verify dates on the official conference website. Dates in parentheses indicate paper submission deadlines 
-          when different from abstract deadlines.
-        </p>
-      </div>
+      {past.length > 0 && (
+        <details className="mt-6">
+          <summary className="cursor-pointer text-sm font-medium text-gray-500">Past events · {past.length}</summary>
+          <ul className="mt-2 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-70">
+            {past.map((c) => (
+              <Row key={c.name} conf={c} />
+            ))}
+          </ul>
+        </details>
+      )}
     </div>
   )
 }
