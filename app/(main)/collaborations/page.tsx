@@ -1,15 +1,14 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { loginHref } from '@/lib/login-href'
 import { prisma } from '@/lib/prisma'
 import { CollaborationsList } from '@/components/collaboration/CollaborationsList'
 
 export default async function CollaborationsPage() {
+  // Public: anyone can browse collaborations; requesting or posting needs an account.
   const session = await getServerSession(authOptions)
-
-  if (!session) {
-    redirect('/login')
-  }
+  const userId = session?.user?.id ?? null
 
   const collaborations = await prisma.collaboration.findMany({
     include: {
@@ -21,9 +20,10 @@ export default async function CollaborationsPage() {
           avatar: true,
         },
       },
+      // Only who has requested (to show "Request sent"): request messages stay private.
       requests: {
-        include: {
-          collaboration: true,
+        select: {
+          userId: true,
         },
       },
       _count: {
@@ -41,14 +41,14 @@ export default async function CollaborationsPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Collaborations</h1>
-        <a
-          href="/collaborations/new"
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        <Link
+          href={userId ? '/collaborations/new' : loginHref('/collaborations/new')}
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
         >
           Post Collaboration
-        </a>
+        </Link>
       </div>
-      <CollaborationsList collaborations={collaborations} userId={session.user.id} />
+      <CollaborationsList collaborations={collaborations} userId={userId} />
     </div>
   )
 }

@@ -25,7 +25,7 @@ function avgFor(reviews: { scores: Scores }[], q: string | null, c: string): num
 }
 
 export default async function FeedbackPage({ params }: { params: { id: string } }) {
-  const userId = await requireUserId()
+  const userId = await requireUserId(`/practice/feedback/${params.id}`)
   const f = await getFeedback(userId, params.id)
   if (!f) notFound()
   const n = f.reviews.length

@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
 import { generateRecommendations, saveRecommendations } from '@/lib/recommendations'
 import { RecommendationsList } from '@/components/recommendations/RecommendationsList'
@@ -10,7 +10,13 @@ export default async function RecommendationsPage() {
   const session = await getServerSession(authOptions)
 
   if (!session) {
-    redirect('/login')
+    return (
+      <LoginGate
+        title="Recommendations for you"
+        body="Recommendations are built from the papers you pick. Log in to see yours."
+        next="/recommendations"
+      />
+    )
   }
 
   // Generate fresh recommendations

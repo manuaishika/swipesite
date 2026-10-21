@@ -60,7 +60,8 @@ export default function RegisterPage() {
       }
 
       // Successfully registered - redirect to login
-      router.push('/login?registered=true')
+      const next = new URLSearchParams(window.location.search).get('next')
+      router.push(`/login?registered=true${next ? `&next=${encodeURIComponent(next)}` : ''}`)
     } catch (err) {
       setError('Something went wrong. Please try again.')
     } finally {

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { loginHref } from '@/lib/login-href'
 import { Bookmark, Calendar, ExternalLink, Heart, Users } from 'lucide-react'
 import { format } from 'date-fns'
 import { areaLabel } from '@/lib/niche-core'
@@ -35,14 +37,18 @@ interface PaperDetailProps {
   userLiked: boolean
   userSaved?: boolean
   userId: string
+  /** Not logged in: like/save send the visitor to log in and come back. */
+  guest?: boolean
 }
 
-export function PaperDetail({ paper, userLiked, userSaved = false }: PaperDetailProps) {
+export function PaperDetail({ paper, userLiked, userSaved = false, guest = false }: PaperDetailProps) {
+  const router = useRouter()
   const [liked, setLiked] = useState(userLiked)
   const [saved, setSaved] = useState(userSaved)
   const [likeCount, setLikeCount] = useState(paper.likes.length)
 
   const handleLike = async () => {
+    if (guest) return router.push(loginHref(`/paper/${paper.id}`))
     try {
       const response = await fetch('/api/papers/like', {
         method: 'POST',
@@ -66,6 +72,7 @@ export function PaperDetail({ paper, userLiked, userSaved = false }: PaperDetail
   }
 
   const handleSave = async () => {
+    if (guest) return router.push(loginHref(`/paper/${paper.id}`))
     try {
       const response = await fetch('/api/papers/save', {
         method: 'POST',

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSafeServerSession } from '@/lib/safe-session'
 import Link from 'next/link'
 import { SwipeDemo } from '@/components/landing/SwipeDemo'
+import { Navbar } from '@/components/layout/Navbar'
 import {
   ArrowRight,
   Bookmark,
@@ -40,6 +41,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-white">
+      <Navbar />
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
         {/* hero */}
         <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">

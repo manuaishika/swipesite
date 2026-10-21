@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
 import { UserProfile } from '@/components/profile/UserProfile'
 import { stringToArray } from '@/lib/json-helpers'
@@ -10,7 +10,13 @@ export default async function ProfilePage() {
   const session = await getServerSession(authOptions)
 
   if (!session) {
-    redirect('/login')
+    return (
+      <LoginGate
+        title="Your profile"
+        body="Log in to see and edit your profile."
+        next="/profile"
+      />
+    )
   }
 
   const user = await prisma.user.findUnique({

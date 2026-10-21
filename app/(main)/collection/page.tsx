@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
 import { transformPapers } from '@/lib/paper-helpers'
 import Link from 'next/link'
@@ -10,7 +10,13 @@ export default async function CollectionPage() {
   const session = await getServerSession(authOptions)
 
   if (!session) {
-    redirect('/login')
+    return (
+      <LoginGate
+        title="Your collection"
+        body="Papers you swipe right on or save are kept here. Log in to see yours."
+        next="/collection"
+      />
+    )
   }
 
   let savedPapers: any[] = []

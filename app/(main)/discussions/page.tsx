@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { ArrowRight, Compass, Layers, MessagesSquare, PenLine } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
@@ -9,16 +8,17 @@ import { stringToArray } from '@/lib/json-helpers'
 import { getNiche } from '@/lib/niche'
 import { areaLabel } from '@/lib/niche-core'
 import { VERDICTS, kindMeta, plural } from '@/lib/peer-review'
+import { LoginToParticipate } from '@/components/auth/LoginGate'
 
 export const dynamic = 'force-dynamic'
 
 type Scope = 'all' | 'niche'
 
 export default async function PeerReviewPage({ searchParams }: { searchParams: { scope?: string } }) {
+  // Public: anyone can browse threads. Your picks and the niche filter need an account.
   const session = await getServerSession(authOptions)
-  if (!session) redirect('/login')
-  const userId = session.user.id
-  const scope: Scope = searchParams.scope === 'niche' ? 'niche' : 'all'
+  const userId = session?.user?.id ?? null
+  const scope: Scope = userId && searchParams.scope === 'niche' ? 'niche' : 'all'
 
   let dbError: string | null = null
   let waiting: { id: string; title: string; categories: string; _count: { comments: number } }[] = []
@@ -27,18 +27,22 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
   let nicheReady = false
 
   try {
-    const niche = await getNiche(userId)
-    nicheReady = niche.ready
-    nicheLabels = new Set(niche.areas.slice(0, 3).map((a) => a.label))
+    if (userId) {
+      const niche = await getNiche(userId)
+      nicheReady = niche.ready
+      nicheLabels = new Set(niche.areas.slice(0, 3).map((a) => a.label))
 
-    // Papers you picked (swiped right) but haven't reviewed yet.
-    const picks = await prisma.paperLike.findMany({
-      where: { userId, liked: true, paper: { comments: { none: { userId, kind: 'review' } } } },
-      orderBy: { createdAt: 'desc' },
-      take: 6,
-      select: { paper: { select: { id: true, title: true, categories: true, _count: { select: { comments: true } } } } },
-    })
-    waiting = picks.map((p) => p.paper)
+      // Papers you picked (swiped right) but haven't reviewed yet.
+      const picks = await prisma.paperLike.findMany({
+        where: { userId, liked: true, paper: { comments: { none: { userId, kind: 'review' } } } },
+        orderBy: { createdAt: 'desc' },
+        take: 6,
+        select: {
+          paper: { select: { id: true, title: true, categories: true, _count: { select: { comments: true } } } },
+        },
+      })
+      waiting = picks.map((p) => p.paper)
+    }
 
     // Threads ordered by latest activity: newest post per paper.
     const latest = await prisma.comment.findMany({
@@ -111,7 +115,10 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
             researchers land.
           </p>
         </div>
-        <Link href="/swipe" className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50">
+        <Link
+          href="/swipe"
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50"
+        >
           <Layers className="h-4 w-4" /> Find more papers
         </Link>
       </div>
@@ -119,59 +126,66 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-8">
           {/* your picks, waiting for a review */}
-          <section>
-            <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Your picks to review</h2>
-              {waiting.length > 0 && (
-                <Link href="/niche" className="text-sm font-medium text-primary hover:underline">
-                  All picks
-                </Link>
-              )}
-            </div>
-            {waiting.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-white/60 p-5 text-sm text-gray-600">
-                Nothing waiting. Swipe right on papers you&apos;d want to work on and they&apos;ll show up here to review.
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {waiting.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={`/paper/${p.id}#discussion`}
-                    className="group flex flex-col justify-between rounded-2xl border border-primary/20 bg-primary-50/50 p-4 transition hover:border-primary hover:bg-primary-50"
-                  >
-                    <div>
-                      <span className="text-xs font-medium text-primary-700">
-                        {areaLabel(stringToArray(p.categories)[0] ?? '')}
-                      </span>
-                      <h3 className="mt-1 line-clamp-2 font-semibold leading-snug text-gray-900">{p.title}</h3>
-                    </div>
-                    <span className="mt-3 flex items-center justify-between text-sm">
-                      <span className="text-gray-500">
-                        {p._count.comments} post{p._count.comments === 1 ? '' : 's'}
-                      </span>
-                      <span className="inline-flex items-center gap-1 font-semibold text-primary">
-                        <PenLine className="h-4 w-4" /> Write a review
-                      </span>
-                    </span>
+          {!userId ? (
+            <LoginToParticipate action="review the papers you pick" next="/discussions" />
+          ) : (
+            <section>
+              <div className="mb-3 flex items-baseline justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Your picks to review</h2>
+                {waiting.length > 0 && (
+                  <Link href="/niche" className="text-sm font-medium text-primary hover:underline">
+                    All picks
                   </Link>
-                ))}
+                )}
               </div>
-            )}
-          </section>
+              {waiting.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-gray-300 bg-white/60 p-5 text-sm text-gray-600">
+                  Nothing waiting. Swipe right on papers you&apos;d want to work on and they&apos;ll show up here to
+                  review.
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {waiting.map((p) => (
+                    <Link
+                      key={p.id}
+                      href={`/paper/${p.id}#discussion`}
+                      className="group flex flex-col justify-between rounded-2xl border border-primary/20 bg-primary-50/50 p-4 transition hover:border-primary hover:bg-primary-50"
+                    >
+                      <div>
+                        <span className="text-xs font-medium text-primary-700">
+                          {areaLabel(stringToArray(p.categories)[0] ?? '')}
+                        </span>
+                        <h3 className="mt-1 line-clamp-2 font-semibold leading-snug text-gray-900">{p.title}</h3>
+                      </div>
+                      <span className="mt-3 flex items-center justify-between text-sm">
+                        <span className="text-gray-500">
+                          {p._count.comments} post{p._count.comments === 1 ? '' : 's'}
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                          <PenLine className="h-4 w-4" /> Write a review
+                        </span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
           {/* threads */}
           <section>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold text-gray-900">Active threads</h2>
-              <div className="flex gap-1">
-                <Link href="/discussions" className={tab(scope === 'all')}>
-                  All
-                </Link>
-                <Link href="/discussions?scope=niche" className={tab(scope === 'niche')}>
-                  In my niche
-                </Link>
-              </div>
+              {userId && (
+                <div className="flex gap-1">
+                  <Link href="/discussions" className={tab(scope === 'all')}>
+                    All
+                  </Link>
+                  <Link href="/discussions?scope=niche" className={tab(scope === 'niche')}>
+                    In my niche
+                  </Link>
+                </div>
+              )}
             </div>
             {scope === 'niche' && !nicheReady && (
               <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -184,7 +198,9 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
             {threads.length === 0 ? (
               <div className="flex flex-col items-center rounded-2xl border border-dashed border-gray-300 bg-white/60 px-6 py-10 text-center">
                 <MessagesSquare className="h-6 w-6 text-primary" />
-                <p className="mt-2 font-medium text-gray-900">No threads {scope === 'niche' ? 'in your niche ' : ''}yet</p>
+                <p className="mt-2 font-medium text-gray-900">
+                  No threads {scope === 'niche' ? 'in your niche ' : ''}yet
+                </p>
                 <p className="mt-1 text-sm text-gray-500">Open one of your picks and write the first review.</p>
               </div>
             ) : (
@@ -199,9 +215,16 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
                       className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary sm:p-5"
                     >
                       <div className="flex flex-wrap items-center gap-1.5">
-                        {t.inNiche && <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">your niche</span>}
+                        {t.inNiche && (
+                          <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">
+                            your niche
+                          </span>
+                        )}
                         {t.areas.slice(0, 2).map((a: string) => (
-                          <span key={a} className="rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-medium text-primary-700">
+                          <span
+                            key={a}
+                            className="rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-medium text-primary-700"
+                          >
                             {a}
                           </span>
                         ))}
@@ -217,11 +240,17 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
                             <span className="flex h-1.5 w-20 overflow-hidden rounded-full bg-gray-100">
                               {VERDICTS.map((v) =>
                                 t.verdicts[v.id] ? (
-                                  <span key={v.id} className={v.bar} style={{ width: `${(t.verdicts[v.id] / total) * 100}%` }} />
-                                ) : null
+                                  <span
+                                    key={v.id}
+                                    className={v.bar}
+                                    style={{ width: `${(t.verdicts[v.id] / total) * 100}%` }}
+                                  />
+                                ) : null,
                               )}
                             </span>
-                            {VERDICTS.filter((v) => t.verdicts[v.id]).map((v) => `${t.verdicts[v.id]} ${v.label.toLowerCase()}`).join(', ')}
+                            {VERDICTS.filter((v) => t.verdicts[v.id])
+                              .map((v) => `${t.verdicts[v.id]} ${v.label.toLowerCase()}`)
+                              .join(', ')}
                           </span>
                         )}
                       </div>
@@ -229,7 +258,8 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
                         <p className="mt-3 line-clamp-2 border-l-2 border-gray-200 pl-3 text-sm text-gray-600">
                           <span className="font-medium text-gray-800">{last.user.name || last.user.username}</span>{' '}
                           <span className="text-gray-400">
-                            ({kindMeta(last.kind).label.toLowerCase()}, {formatDistanceToNow(new Date(last.createdAt), { addSuffix: true })})
+                            ({kindMeta(last.kind).label.toLowerCase()},{' '}
+                            {formatDistanceToNow(new Date(last.createdAt), { addSuffix: true })})
                           </span>
                           : {last.content.replace(/[*_#>`]/g, '').slice(0, 220)}
                         </p>
@@ -246,13 +276,28 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <h2 className="font-semibold text-gray-900">Writing a useful review</h2>
             <ol className="mt-3 space-y-2 text-sm text-gray-600">
-              <li><strong className="text-gray-800">1. Main claim.</strong> One sentence: what does the paper say it shows?</li>
-              <li><strong className="text-gray-800">2. Evidence.</strong> What was varied and measured, and does it support the claim?</li>
-              <li><strong className="text-gray-800">3. Gaps.</strong> What&apos;s missing, and what else could explain the result?</li>
-              <li><strong className="text-gray-800">4. Verdict.</strong> Promising, mixed or skeptical, and what would change your mind.</li>
+              <li>
+                <strong className="text-gray-800">1. Main claim.</strong> One sentence: what does the paper say it
+                shows?
+              </li>
+              <li>
+                <strong className="text-gray-800">2. Evidence.</strong> What was varied and measured, and does it
+                support the claim?
+              </li>
+              <li>
+                <strong className="text-gray-800">3. Gaps.</strong> What&apos;s missing, and what else could explain the
+                result?
+              </li>
+              <li>
+                <strong className="text-gray-800">4. Verdict.</strong> Promising, mixed or skeptical, and what would
+                change your mind.
+              </li>
             </ol>
           </div>
-          <Link href="/practice" className="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-primary">
+          <Link
+            href="/practice"
+            className="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-primary"
+          >
             <div className="flex items-center gap-2 font-semibold text-gray-900">
               <PenLine className="h-4 w-4 text-primary" /> Practice critiques
             </div>
@@ -263,7 +308,10 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
               Practise <ArrowRight className="h-4 w-4" />
             </span>
           </Link>
-          <Link href="/niche" className="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-primary">
+          <Link
+            href="/niche"
+            className="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-primary"
+          >
             <div className="flex items-center gap-2 font-semibold text-gray-900">
               <Compass className="h-4 w-4 text-primary" /> My niche
             </div>

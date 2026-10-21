@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { loginHref } from '@/lib/login-href'
 import { formatDistanceToNow } from 'date-fns'
 import { Users, Clock, CheckCircle, XCircle, Send } from 'lucide-react'
 
@@ -18,9 +19,7 @@ interface Collaboration {
     avatar: string | null
   }
   requests: Array<{
-    id: string
     userId: string
-    status: string
   }>
   _count: {
     requests: number
@@ -29,7 +28,8 @@ interface Collaboration {
 
 interface CollaborationsListProps {
   collaborations: Collaboration[]
-  userId: string
+  /** null for visitors who aren't logged in */
+  userId: string | null
 }
 
 export function CollaborationsList({ collaborations, userId }: CollaborationsListProps) {
@@ -138,6 +138,14 @@ export function CollaborationsList({ collaborations, userId }: CollaborationsLis
                     <CheckCircle className="w-4 h-4 mr-1" />
                     Request Sent
                   </span>
+                ) : collab.status === 'open' && !userId ? (
+                  <Link
+                    href={loginHref('/collaborations')}
+                    className="flex items-center space-x-2 px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary-light transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Log in to request</span>
+                  </Link>
                 ) : collab.status === 'open' ? (
                   <button
                     onClick={() => handleRequest(collab.id)}

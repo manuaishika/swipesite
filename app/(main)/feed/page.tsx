@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
 import { ActivityFeed } from '@/components/feed/ActivityFeed'
 
@@ -8,7 +8,13 @@ export default async function FeedPage() {
   const session = await getServerSession(authOptions)
 
   if (!session) {
-    redirect('/login')
+    return (
+      <LoginGate
+        title="Your feed"
+        body="See what the researchers you follow are reading. Log in to see your feed."
+        next="/feed"
+      />
+    )
   }
 
   // Get activities from users the current user follows

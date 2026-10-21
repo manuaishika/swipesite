@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { PaperDetail } from '@/components/paper/PaperDetail'
@@ -15,11 +14,9 @@ export default async function PaperPage({
 }: {
   params: { id: string }
 }) {
+  // Public: anyone can read a paper and its review thread; posting/voting needs an account.
   const session = await getServerSession(authOptions)
-
-  if (!session) {
-    redirect('/login')
-  }
+  const userId = session?.user?.id ?? null
 
   const paper = await prisma.paper.findUnique({
     where: { id: params.id },
@@ -58,7 +55,8 @@ export default async function PaperPage({
             },
             orderBy: { createdAt: 'asc' },
           },
-          votes: { select: { voteType: true, userId: true } },
+          // only the viewer's own vote (to highlight it); other voters stay private
+          votes: { where: { userId: userId ?? '' }, select: { voteType: true, userId: true } },
         },
         orderBy: {
           createdAt: 'desc',
@@ -75,14 +73,12 @@ export default async function PaperPage({
     )
   }
 
-  const [userLike, userSave] = await Promise.all([
-    prisma.paperLike.findUnique({
-      where: { userId_paperId: { userId: session.user.id, paperId: paper.id } },
-    }),
-    prisma.savedPaper.findUnique({
-      where: { userId_paperId: { userId: session.user.id, paperId: paper.id } },
-    }),
-  ])
+  const [userLike, userSave] = userId
+    ? await Promise.all([
+        prisma.paperLike.findUnique({ where: { userId_paperId: { userId, paperId: paper.id } } }),
+        prisma.savedPaper.findUnique({ where: { userId_paperId: { userId, paperId: paper.id } } }),
+      ])
+    : [null, null]
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
@@ -95,10 +91,11 @@ export default async function PaperPage({
             paper={transformPaper(paper)}
             userLiked={userLike?.liked || false}
             userSaved={Boolean(userSave)}
-            userId={session.user.id}
+            userId={userId ?? ''}
+            guest={!userId}
           />
         </div>
-        <PeerReviewThread paperId={paper.id} posts={paper.comments} userId={session.user.id} />
+        <PeerReviewThread paperId={paper.id} posts={paper.comments} userId={userId} />
       </div>
     </div>
   )

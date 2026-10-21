@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { Loader2, MessagesSquare, Reply, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -15,6 +16,8 @@ import {
   type PostKind,
   type Verdict,
 } from '@/lib/peer-review'
+import { loginHref } from '@/lib/login-href'
+import { LoginToParticipate } from '@/components/auth/LoginGate'
 
 type Vote = { voteType: string; userId: string }
 type UserLite = { id: string; name: string | null; username: string }
@@ -52,8 +55,11 @@ export function PeerReviewThread({
 }: {
   paperId: string
   posts: ThreadPost[]
-  userId: string
+  /** null for visitors who aren't logged in: they can read everything but not post or vote */
+  userId: string | null
 }) {
+  const router = useRouter()
+  const here = `/paper/${paperId}#discussion`
   const [posts, setPosts] = useState(initialPosts)
   const [kind, setKind] = useState<PostKind>(initialPosts.some((p) => p.user.id === userId && p.kind === 'review') ? 'discussion' : 'review')
   const [verdict, setVerdict] = useState<Verdict | null>(null)
@@ -130,6 +136,7 @@ export function PeerReviewThread({
   }
 
   async function vote(commentId: string, voteType: 'upvote' | 'downvote') {
+    if (!userId) return router.push(loginHref(here))
     const res = await fetch('/api/comments/vote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -214,6 +221,11 @@ export function PeerReviewThread({
       )}
 
       {/* composer */}
+      {!userId ? (
+        <div className="mt-4">
+          <LoginToParticipate action="write a review or join the discussion" next={here} />
+        </div>
+      ) : (
       <form onSubmit={submit} className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
         <div role="tablist" aria-label="Post type" className="flex flex-wrap gap-1">
           {POST_KINDS.map((k) => (
@@ -270,6 +282,7 @@ export function PeerReviewThread({
           </button>
         </div>
       </form>
+      )}
 
       {/* filters */}
       {posts.length > 0 && (
@@ -330,7 +343,7 @@ export function PeerReviewThread({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setReplyingTo(replyingTo === p.id ? null : p.id)}
+                  onClick={() => (userId ? setReplyingTo(replyingTo === p.id ? null : p.id) : router.push(loginHref(here)))}
                   className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100"
                 >
                   <Reply className="h-4 w-4" /> Reply{p.replies.length ? ` · ${p.replies.length}` : ''}

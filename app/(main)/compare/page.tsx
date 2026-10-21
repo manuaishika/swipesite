@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { LoginGate } from '@/components/auth/LoginGate'
 import { prisma } from '@/lib/prisma'
 import { transformPapers } from '@/lib/paper-helpers'
 import { PaperComparison } from '@/components/compare/PaperComparison'
@@ -9,7 +9,13 @@ export default async function ComparePage() {
   const session = await getServerSession(authOptions)
 
   if (!session) {
-    redirect('/login')
+    return (
+      <LoginGate
+        title="Compare papers"
+        body="Compare puts the papers you've saved side by side. Log in to use it."
+        next="/compare"
+      />
+    )
   }
 
   // Get user's saved papers for comparison

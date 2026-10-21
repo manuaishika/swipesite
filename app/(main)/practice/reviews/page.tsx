@@ -9,7 +9,7 @@ import { Card, Chip, EmptyState, PageShell, SectionTitle, btnSecondary } from '@
 export const dynamic = 'force-dynamic'
 
 export default async function ReviewQueue() {
-  const userId = await requireUserId()
+  const userId = await requireUserId('/practice/reviews')
   const dash = await getDashboard(userId)
   const pending = dash.queue.filter((q) => !q.completed)
   const done = dash.queue.filter((q) => q.completed)

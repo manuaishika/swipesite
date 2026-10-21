@@ -6,7 +6,7 @@ import { SessionRunner } from '@/components/practice/SessionRunner'
 export const dynamic = 'force-dynamic'
 
 export default async function SessionPage({ params }: { params: { id: string } }) {
-  const userId = await requireUserId()
+  const userId = await requireUserId(`/practice/session/${params.id}`)
   const data = await getRunnerData(userId, params.id)
   if (!data) notFound()
   if (data.state === 'submitted') redirect(`/practice/feedback/${data.submissionId}`)

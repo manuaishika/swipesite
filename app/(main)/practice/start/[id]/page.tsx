@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { requireUserId } from '@/lib/practice/require-user'
+import { optionalUserId } from '@/lib/practice/require-user'
+import { LoginToParticipate } from '@/components/auth/LoginGate'
 import { getLibraryItem } from '@/lib/practice/service'
 import { PROMPTS } from '@/lib/practice/constants'
 import { AssessmentNotice } from '@/components/practice/Notices'
@@ -11,7 +12,8 @@ import { ArxivLink, Card, Chip, PageShell } from '@/components/practice/ui'
 export const dynamic = 'force-dynamic'
 
 export default async function StartPage({ params }: { params: { id: string } }) {
-  await requireUserId()
+  // Anyone can look; starting a timed session needs an account.
+  const userId = await optionalUserId()
   const a = await getLibraryItem(params.id)
   if (!a) notFound()
   return (
@@ -29,7 +31,11 @@ export default async function StartPage({ params }: { params: { id: string } }) 
 
       <div className="mt-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-4">
-          <StartForm abstractId={a.id} />
+          {userId ? (
+            <StartForm abstractId={a.id} />
+          ) : (
+            <LoginToParticipate action="start a timed practice session" next={`/practice/start/${a.id}`} />
+          )}
           <AssessmentNotice />
         </div>
         <Card className="h-fit p-6">

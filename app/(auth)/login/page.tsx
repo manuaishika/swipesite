@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { safeNext } from '@/lib/login-href'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -24,13 +25,12 @@ export default function LoginPage() {
         redirect: false,
       })
 
-      console.log('Login result:', result)
-
       if (result?.error) {
         console.error('Login error:', result.error)
         setError('Invalid email or password. Please check your credentials and try again.')
       } else if (result?.ok) {
-        router.push('/dashboard')
+        // Go back to whatever the user was trying to do before logging in.
+        router.push(safeNext(new URLSearchParams(window.location.search).get('next')))
         router.refresh()
       } else {
         setError('Login failed. Please try again.')

@@ -45,13 +45,6 @@ const secondaryNavItems = [
   { href: '/critique', label: 'Idea critique', icon: Lightbulb },
 ]
 
-const publicNavItems = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/swipe', label: 'Try swiping', icon: Layers },
-  { href: '/conferences', label: 'Conferences', icon: Calendar },
-  { href: '/opportunities', label: 'Opportunities', icon: Mail },
-]
-
 function isActive(pathname: string | null, href: string) {
   if (!pathname) return false
   if (href === '/') return pathname === '/'
@@ -82,12 +75,16 @@ export function Navbar() {
   }, [moreOpen])
 
   const toggleColorMode = () => {
-    setColorMode(prev => prev === 'default' ? 'alt' : 'default')
+    setColorMode((prev) => (prev === 'default' ? 'alt' : 'default'))
   }
 
   const bgColor = colorMode === 'default' ? 'bg-primary' : 'bg-accent'
   const hoverBg = colorMode === 'default' ? 'hover:bg-primary-light' : 'hover:bg-accent-light'
-  const moreActive = secondaryNavItems.some((i) => isActive(pathname, i.href))
+  const navSecondary = session
+    ? secondaryNavItems
+    : secondaryNavItems.map((i) => (i.href === '/dashboard' ? { ...i, href: '/' } : i))
+  // the landing page isn't a "More" page, so don't light up More there
+  const moreActive = navSecondary.some((i) => i.href !== '/' && isActive(pathname, i.href))
 
   const linkCls = (active: boolean) =>
     `inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -107,66 +104,52 @@ export function Navbar() {
               <span>ResearchSwipe</span>
             </Link>
 
-            {session ? (
-              <div className="hidden md:flex md:items-center md:gap-1">
-                {primaryNavItems.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <Link key={item.href} href={item.href} className={linkCls(isActive(pathname, item.href))}>
-                      <Icon className="w-4 h-4" />
-                      {item.label}
-                    </Link>
-                  )
-                })}
-                <div className="relative" ref={moreRef}>
-                  <button
-                    type="button"
-                    onClick={() => setMoreOpen((o) => !o)}
-                    aria-expanded={moreOpen}
-                    aria-haspopup="menu"
-                    className={linkCls(moreActive)}
+            <div className="hidden md:flex md:items-center md:gap-1">
+              {primaryNavItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Link key={item.href} href={item.href} className={linkCls(isActive(pathname, item.href))}>
+                    <Icon className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+              <div className="relative" ref={moreRef}>
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((o) => !o)}
+                  aria-expanded={moreOpen}
+                  aria-haspopup="menu"
+                  className={linkCls(moreActive)}
+                >
+                  More <ChevronDown className={`w-4 h-4 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {moreOpen && (
+                  <div
+                    role="menu"
+                    className="absolute left-0 mt-2 w-56 rounded-xl bg-white py-2 shadow-xl ring-1 ring-black/5"
                   >
-                    More <ChevronDown className={`w-4 h-4 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {moreOpen && (
-                    <div
-                      role="menu"
-                      className="absolute left-0 mt-2 w-56 rounded-xl bg-white py-2 shadow-xl ring-1 ring-black/5"
-                    >
-                      {secondaryNavItems.map((item) => {
-                        const Icon = item.icon
-                        const active = isActive(pathname, item.href)
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            role="menuitem"
-                            className={`flex items-center gap-3 px-4 py-2 text-sm ${
-                              active ? 'bg-primary-50 text-primary font-semibold' : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            <Icon className="w-4 h-4 text-gray-400" />
-                            {item.label}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
+                    {navSecondary.map((item) => {
+                      const Icon = item.icon
+                      const active = isActive(pathname, item.href)
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          className={`flex items-center gap-3 px-4 py-2 text-sm ${
+                            active ? 'bg-primary-50 text-primary font-semibold' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 text-gray-400" />
+                          {item.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="hidden md:flex md:items-center md:gap-1">
-                {publicNavItems.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <Link key={item.href} href={item.href} className={linkCls(isActive(pathname, item.href))}>
-                      <Icon className="w-4 h-4" />
-                      {item.label}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -210,23 +193,21 @@ export function Navbar() {
                 </Link>
               </div>
             )}
-            {session && (
-              <button
-                type="button"
-                onClick={() => setMobileOpen((o) => !o)}
-                aria-expanded={mobileOpen}
-                aria-label="Open menu"
-                className={`md:hidden p-2 rounded-lg text-white ${hoverBg}`}
-              >
-                {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setMobileOpen((o) => !o)}
+              aria-expanded={mobileOpen}
+              aria-label="Open menu"
+              className={`md:hidden p-2 rounded-lg text-white ${hoverBg}`}
+            >
+              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
       </div>
 
       {/* mobile menu */}
-      {session && mobileOpen && (
+      {mobileOpen && (
         <div className="md:hidden border-t border-white/10 bg-white shadow-xl">
           <div className="grid grid-cols-3 gap-2 p-3">
             {primaryNavItems.map((item) => {
@@ -247,23 +228,49 @@ export function Navbar() {
             })}
           </div>
           <div className="border-t border-gray-100 py-2">
-            {secondaryNavItems.map((item) => {
+            {navSecondary.map((item) => {
               const Icon = item.icon
               return (
-                <Link key={item.href} href={item.href} className="flex items-center gap-3 px-5 py-2.5 text-sm text-gray-700">
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-3 px-5 py-2.5 text-sm text-gray-700"
+                >
                   <Icon className="w-4 h-4 text-gray-400" />
                   {item.label}
                 </Link>
               )
             })}
-            <Link href="/profile" className="flex items-center gap-3 px-5 py-2.5 text-sm text-gray-700">
-              <User className="w-4 h-4 text-gray-400" />
-              Profile
-            </Link>
-            <button onClick={() => signOut()} className="flex w-full items-center gap-3 px-5 py-2.5 text-sm text-gray-700">
-              <LogOut className="w-4 h-4 text-gray-400" />
-              Sign out
-            </button>
+            {session ? (
+              <>
+                <Link href="/profile" className="flex items-center gap-3 px-5 py-2.5 text-sm text-gray-700">
+                  <User className="w-4 h-4 text-gray-400" />
+                  Profile
+                </Link>
+                <button
+                  onClick={() => signOut()}
+                  className="flex w-full items-center gap-3 px-5 py-2.5 text-sm text-gray-700"
+                >
+                  <LogOut className="w-4 h-4 text-gray-400" />
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 px-4 pt-2">
+                <Link
+                  href="/login"
+                  className="rounded-lg border border-primary py-2.5 text-center text-sm font-bold text-primary"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/register"
+                  className="rounded-lg bg-primary py-2.5 text-center text-sm font-bold text-white"
+                >
+                  Sign up free
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

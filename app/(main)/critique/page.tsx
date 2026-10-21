@@ -1,13 +1,19 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { LoginGate } from '@/components/auth/LoginGate'
 import { ResearchCritique } from '@/components/critique/ResearchCritique'
 
 export default async function CritiquePage() {
   const session = await getServerSession(authOptions)
 
   if (!session) {
-    redirect('/login')
+    return (
+      <LoginGate
+        title="Idea critique"
+        body="Get feedback on a research idea. Log in to use it."
+        next="/critique"
+      />
+    )
   }
 
   return (

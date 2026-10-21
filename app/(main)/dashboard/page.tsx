@@ -39,8 +39,9 @@ const SECONDARY = [
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
 
+  // Logged-out visitors get the landing page, which explains the app and lets them start swiping.
   if (!session) {
-    redirect('/login')
+    redirect('/')
   }
   const userId = session.user.id
 

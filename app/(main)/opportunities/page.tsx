@@ -1,15 +1,8 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
 import { Mail, Plus, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function OpportunitiesPage() {
-  const session = await getServerSession(authOptions)
-
-  if (!session) {
-    redirect('/login')
-  }
+// Public: listed in the logged-out navbar, so it must not bounce visitors to login.
+export default function OpportunitiesPage() {
 
   // This would come from a database in production
   const opportunities = [

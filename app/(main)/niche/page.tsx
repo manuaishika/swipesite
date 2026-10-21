@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { ArrowRight, Compass, Layers, MessagesSquare } from 'lucide-react'
 import { getSafeServerSession } from '@/lib/safe-session'
 import { prisma } from '@/lib/prisma'
@@ -7,12 +6,14 @@ import { stringToArray } from '@/lib/json-helpers'
 import { getNiche } from '@/lib/niche'
 import { areaLabel, NICHE_READY_AFTER } from '@/lib/niche-core'
 import { NichePanel } from '@/components/swipe/NichePanel'
+import { GuestNiche } from '@/components/swipe/GuestNiche'
 
 export const dynamic = 'force-dynamic'
 
 export default async function NichePage() {
   const session = await getSafeServerSession()
-  if (!session?.user?.id) redirect('/login')
+  // Visitors who aren't logged in see the niche from the swipes kept in their browser.
+  if (!session?.user?.id) return <GuestNiche />
 
   const [niche, picks] = await Promise.all([
     getNiche(session.user.id),
