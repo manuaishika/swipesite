@@ -23,14 +23,16 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
   let dbError: string | null = null
   let waiting: { id: string; title: string; categories: string; _count: { comments: number } }[] = []
   let threads: any[] = []
-  let nicheLabels = new Set<string>()
+  let nicheCodes = new Set<string>()
   let nicheReady = false
 
   try {
     if (userId) {
       const niche = await getNiche(userId)
       nicheReady = niche.ready
-      nicheLabels = new Set(niche.areas.slice(0, 3).map((a) => a.label))
+      // "In my niche": likely-niche categories, or while still forming, the categories above your average.
+      const focus = niche.likely.length ? niche.likely : niche.categories.filter((c) => c.rate > niche.baseRate).slice(0, 3)
+      nicheCodes = new Set(focus.map((c) => c.code))
 
       // Papers you picked (swiped right) but haven't reviewed yet.
       const picks = await prisma.paperLike.findMany({
@@ -82,8 +84,9 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
         kindCounts.filter((k) => k.paperId === p.id).forEach((k) => (kinds[k.kind] = k._count._all))
         const verdicts: Record<string, number> = {}
         verdictCounts.filter((v) => v.paperId === p.id).forEach((v) => (verdicts[v.verdict as string] = v._count._all))
-        const areas = Array.from(new Set(stringToArray(p.categories).map(areaLabel)))
-        return { ...p, kinds, verdicts, areas, inNiche: areas.some((a) => nicheLabels.has(a)) }
+        const codes = stringToArray(p.categories)
+        const areas = Array.from(new Set(codes.map(areaLabel)))
+        return { ...p, kinds, verdicts, areas, inNiche: codes.some((c) => nicheCodes.has(c)) }
       })
       .filter((t) => scope === 'all' || t.inNiche)
   } catch (error: any) {
@@ -111,7 +114,7 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Peer review</h1>
           <p className="mt-1 max-w-2xl text-gray-600">
-            You picked it, now argue about it. Review papers from your niche, ask questions, and see where other
+            You picked it, now argue about it. Review the papers you picked, ask questions, and see where other
             researchers land.
           </p>
         </div>
@@ -182,14 +185,14 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
                     All
                   </Link>
                   <Link href="/discussions?scope=niche" className={tab(scope === 'niche')}>
-                    In my niche
+                    My categories
                   </Link>
                 </div>
               )}
             </div>
             {scope === 'niche' && !nicheReady && (
               <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                Your niche is still forming, so this uses the areas you lean towards so far.{' '}
+                No category has enough evidence yet, so this uses the categories above your average so far.{' '}
                 <Link href="/swipe" className="font-medium underline">
                   Keep swiping
                 </Link>
@@ -199,7 +202,7 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
               <div className="flex flex-col items-center rounded-2xl border border-dashed border-gray-300 bg-white/60 px-6 py-10 text-center">
                 <MessagesSquare className="h-6 w-6 text-primary" />
                 <p className="mt-2 font-medium text-gray-900">
-                  No threads {scope === 'niche' ? 'in your niche ' : ''}yet
+                  No threads {scope === 'niche' ? 'in your categories ' : ''}yet
                 </p>
                 <p className="mt-1 text-sm text-gray-500">Open one of your picks and write the first review.</p>
               </div>
@@ -217,7 +220,7 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
                       <div className="flex flex-wrap items-center gap-1.5">
                         {t.inNiche && (
                           <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">
-                            your niche
+                            your categories
                           </span>
                         )}
                         {t.areas.slice(0, 2).map((a: string) => (
@@ -315,7 +318,7 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
             <div className="flex items-center gap-2 font-semibold text-gray-900">
               <Compass className="h-4 w-4 text-primary" /> My niche
             </div>
-            <p className="mt-1 text-sm text-gray-600">See the areas you lean towards and every paper you picked.</p>
+            <p className="mt-1 text-sm text-gray-600">Evidence by arXiv category and every paper you marked interesting.</p>
           </Link>
         </aside>
       </div>

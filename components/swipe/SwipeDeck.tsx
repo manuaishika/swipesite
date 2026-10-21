@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Heart, Loader2, MessagesSquare, PartyPopper, RotateCcw, Sparkles, X } from 'lucide-react'
-import { applySwipe, emptyTally, nicheAffinity, nicheFromTally, type NicheTally } from '@/lib/niche-core'
+import { ArrowRight, Heart, Loader2, MessagesSquare, PartyPopper, RotateCcw, X } from 'lucide-react'
+import { applySwipe, categoryEvidence, emptyTally, nicheFromTally, type NicheTally } from '@/lib/niche-core'
 import { readGuestSwipes, writeGuestSwipes, type GuestSwipe } from '@/lib/guest-swipes'
 import { NichePanel } from './NichePanel'
 import { StackedCard, SwipeCard, type SwipePaper } from './SwipeCard'
@@ -25,7 +25,6 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
   const [history, setHistory] = useState<{ paper: Paper; liked: boolean }[]>([])
   const [returnFrom, setReturnFrom] = useState(0)
   const [lastPick, setLastPick] = useState<Paper | null>(null)
-  const [revealed, setRevealed] = useState(false)
   const [fetchingMore, setFetchingMore] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const flingRef = useRef<((liked: boolean) => void) | null>(null)
@@ -34,7 +33,6 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
   }, [])
 
   const niche = useMemo(() => nicheFromTally(tally), [tally])
-  const wasReady = useRef(initialTally.swipes > 0 && nicheFromTally(initialTally).ready)
   const current = papers[index]
 
   // Guest: restore swipes from this browser and drop already-swiped papers from the deck.
@@ -44,18 +42,9 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
     if (!saved.length) return
     const done = new Set(saved.map((s) => s.paperId))
     const t = saved.reduce((acc, s) => applySwipe(acc, s), emptyTally())
-    wasReady.current = nicheFromTally(t).ready
     setTally(t)
     setPapers((prev) => prev.filter((p) => !done.has(p.id)))
   }, [guest])
-
-  // Celebrate the moment the niche is first revealed.
-  useEffect(() => {
-    if (niche.ready && !wasReady.current) {
-      wasReady.current = true
-      setRevealed(true)
-    }
-  }, [niche.ready])
 
   const fetchMore = useCallback(async () => {
     if (fetchingMore || guest) return
@@ -140,17 +129,13 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
-      if (revealed) {
-        if (e.key === 'Escape' || e.key === 'Enter') setRevealed(false)
-        return
-      }
       if (e.key === 'ArrowRight') decide(true)
       else if (e.key === 'ArrowLeft') decide(false)
       else if (e.key === 'z' || e.key === 'Backspace') undo()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [decide, undo, revealed])
+  }, [decide, undo])
 
   useEffect(() => {
     if (!lastPick) return
@@ -166,7 +151,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
         {guest && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary-50 px-4 py-3 text-sm">
             <span className="text-gray-800">
-              <strong>Swiping as a guest.</strong> Your swipes are kept in this browser. Sign up to save your niche and
+              <strong>Swiping as a guest.</strong> Your swipes are kept in this browser. Sign up to keep your ratings and
               review papers with others.
             </span>
             <Link href="/register" className="rounded-lg bg-primary px-3 py-1.5 font-semibold text-white hover:bg-primary-light">
@@ -183,7 +168,7 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
               <SwipeCard
                 key={current.id}
                 paper={current}
-                inNiche={niche.ready && nicheAffinity(current.categories, niche) > 0}
+                evidence={categoryEvidence(current.categories[0], niche)}
                 onDecide={commit}
                 registerFling={registerFling}
                 returnFrom={returnFrom}
@@ -195,13 +180,13 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
               <p className="mt-3 text-xl font-extrabold text-gray-900">You swiped the whole deck!</p>
               <p className="mt-1 max-w-sm text-sm text-gray-500">
                 {guest
-                  ? 'Sign up to save your niche, get fresh papers and review the ones you picked.'
+                  ? 'Sign up to keep your ratings, get fresh papers and review the ones you picked.'
                   : 'Pull in fresh abstracts from arXiv, or go discuss the papers you picked.'}
               </p>
               <div className="mt-5 flex flex-wrap justify-center gap-3">
                 {guest ? (
                   <Link href="/register" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-primary-light">
-                    Save my niche <ArrowRight className="h-4 w-4" />
+                    Save my progress <ArrowRight className="h-4 w-4" />
                   </Link>
                 ) : (
                   <>
@@ -293,48 +278,6 @@ export function SwipeDeck({ initialPapers, initialTally, guest = false }: Props)
         <NichePanel niche={niche} guest={guest} />
       </aside>
 
-      {/* niche reveal */}
-      <AnimatePresence>
-        {revealed && niche.areas[0] && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setRevealed(false)}
-          >
-            <motion.div
-              role="dialog"
-              aria-label="Your niche"
-              initial={{ scale: 0.7, rotate: -4, opacity: 0 }}
-              animate={{ scale: 1, rotate: 0, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md rounded-[2rem] bg-gradient-to-br from-primary to-accent p-8 text-center text-white shadow-2xl"
-            >
-              <Sparkles className="mx-auto h-10 w-10 text-amber-300" />
-              <p className="mt-3 text-sm font-semibold uppercase tracking-widest text-white/70">Niche unlocked</p>
-              <h2 className="mt-2 text-3xl font-extrabold leading-tight">{niche.areas[0].label}</h2>
-              {niche.areas[1] && <p className="mt-1 text-white/80">with a pull towards {niche.areas[1].label}</p>}
-              <p className="mt-4 text-sm text-white/75">
-                Your deck will now lead with papers in your niche, with a few wildcards mixed in.
-              </p>
-              <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-                <button onClick={() => setRevealed(false)} className="rounded-xl bg-white px-5 py-3 text-sm font-bold text-primary hover:bg-primary-50">
-                  Keep swiping
-                </button>
-                <Link
-                  href={guest ? '/register' : '/niche'}
-                  className="rounded-xl border border-white/40 px-5 py-3 text-sm font-bold text-white hover:bg-white/10"
-                >
-                  {guest ? 'Save my niche' : 'See my niche'}
-                </Link>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

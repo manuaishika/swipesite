@@ -20,7 +20,8 @@ import {
 import { prisma } from '@/lib/prisma'
 import { ActivityFeed } from '@/components/feed/ActivityFeed'
 import { getNiche } from '@/lib/niche'
-import { NICHE_READY_AFTER, type Niche } from '@/lib/niche-core'
+import type { Niche } from '@/lib/niche-core'
+import { StageStepper } from '@/components/swipe/NichePanel'
 import { kindMeta, plural } from '@/lib/peer-review'
 
 export const dynamic = 'force-dynamic'
@@ -129,7 +130,7 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Hi {name}</h1>
-      <p className="mt-1 text-gray-600">Find your niche by swiping abstracts, then review what you picked with other researchers.</p>
+      <p className="mt-1 text-gray-600">Rate abstracts across arXiv to build up evidence for your niche, category by category, then review what you picked with other researchers.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* pillar 1: find your niche */}
@@ -137,46 +138,45 @@ export default async function DashboardPage() {
           <div className="flex items-center gap-2 text-sm font-semibold text-white/80">
             <Compass className="h-4 w-4" /> Find your niche
           </div>
-          {niche.ready ? (
-            <>
-              <h2 className="mt-3 text-2xl font-bold leading-tight">You lean towards {niche.areas[0].label}</h2>
-              <ul className="mt-5 space-y-3">
-                {niche.areas.slice(0, 3).map((a) => (
-                  <li key={a.label}>
-                    <div className="flex justify-between text-sm">
-                      <span>{a.label}</span>
-                      <span className="tabular-nums text-white/70">{Math.round(a.share * 100)}%</span>
-                    </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/15">
-                      <div className="h-full rounded-full bg-white" style={{ width: `${Math.max(4, a.share * 100)}%` }} />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <>
-              <h2 className="mt-3 text-2xl font-bold leading-tight">
-                {niche.swipes === 0 ? 'Start swiping to find your niche' : 'Your niche is taking shape'}
-              </h2>
-              <p className="mt-2 text-white/80">
-                {niche.swipesToReady > 0
-                  ? `Swipe ${niche.swipesToReady} more abstract${niche.swipesToReady === 1 ? '' : 's'} to reveal it.`
-                  : 'Swipe right on a few more papers you would want to work on.'}
-              </p>
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15">
-                <div className="h-full rounded-full bg-white" style={{ width: `${Math.min(1, niche.swipes / NICHE_READY_AFTER) * 100}%` }} />
-              </div>
-            </>
+          <div className="mt-4 max-w-sm">
+            <StageStepper niche={niche} onDark />
+          </div>
+          <h2 className="mt-4 text-2xl font-bold leading-tight">
+            {niche.stage === 'focus'
+              ? `Evidence points to ${niche.likely[0].name}`
+              : niche.swipes === 0
+                ? 'Start by rating abstracts across arXiv'
+                : niche.stage === 'explore'
+                  ? 'Exploring broadly'
+                  : 'Narrowing down'}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-white/80">{niche.nextStep}</p>
+          {niche.categories.length > 0 && (
+            <ul className="mt-4 space-y-2.5">
+              {niche.categories.slice(0, 3).map((c) => (
+                <li key={c.code}>
+                  <div className="flex justify-between gap-2 text-sm">
+                    <span className="truncate">{c.name}</span>
+                    <span className="shrink-0 tabular-nums text-white/70">
+                      {Math.round(c.rate * 100)}% of {Number.isInteger(c.seen) ? c.seen : c.seen.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="relative mt-1 h-1.5 rounded-full bg-white/15">
+                    <div className="absolute inset-y-0 rounded-full bg-white/40" style={{ left: `${c.low * 100}%`, width: `${Math.max(1, (c.high - c.low) * 100)}%` }} />
+                    <div className="absolute inset-y-0 w-1 -translate-x-1/2 rounded-full bg-white" style={{ left: `${c.rate * 100}%` }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
           <div className="mt-auto flex flex-wrap items-center gap-3 pt-6">
             <Link href="/swipe" className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-primary shadow-sm hover:bg-primary-50">
-              <Layers className="h-4 w-4" /> {niche.swipes === 0 ? 'Start swiping' : 'Continue swiping'}
+              <Layers className="h-4 w-4" /> {niche.swipes === 0 ? 'Start rating' : 'Rate more abstracts'}
             </Link>
             <span className="text-sm text-white/70">{plural(toSwipe, 'abstract')} waiting</span>
             {niche.swipes > 0 && (
               <Link href="/niche" className="ml-auto text-sm font-semibold text-white/90 hover:text-white">
-                My niche →
+                Full analysis →
               </Link>
             )}
           </div>

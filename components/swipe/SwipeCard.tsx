@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { animate, motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion'
 import { Calendar, Check, ExternalLink, Users, X } from 'lucide-react'
 import { format } from 'date-fns'
-import { areaLabel } from '@/lib/niche-core'
+import { areaLabel, fieldOf, type CategoryEvidence } from '@/lib/niche-core'
 
 export type SwipePaper = {
   id: string
@@ -24,7 +24,8 @@ const FLING_VELOCITY = 650
 
 type Props = {
   paper: SwipePaper
-  inNiche: boolean
+  /** What the evidence so far says about this paper's primary arXiv category (null if untested). */
+  evidence: CategoryEvidence | null
   /** Called once the card has flown off screen. */
   onDecide: (liked: boolean) => void
   /** Lets the deck fling this card from buttons / keyboard with the same motion as a drag. */
@@ -33,7 +34,7 @@ type Props = {
   returnFrom?: number
 }
 
-export function SwipeCard({ paper, inNiche, onDecide, registerFling, returnFrom = 0 }: Props) {
+export function SwipeCard({ paper, evidence, onDecide, registerFling, returnFrom = 0 }: Props) {
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-300, 300], [-14, 14])
   const yesOpacity = useTransform(x, [25, SWIPE_THRESHOLD], [0, 1])
@@ -68,7 +69,8 @@ export function SwipeCard({ paper, inNiche, onDecide, registerFling, returnFrom 
 
   const authors =
     paper.authors.length > 3 ? `${paper.authors.slice(0, 3).join(', ')} et al.` : paper.authors.join(', ')
-  const areas = Array.from(new Set(paper.categories.map(areaLabel))).slice(0, 3)
+  const primary = paper.categories[0]
+  const crossLists = paper.categories.slice(1, 3)
 
   return (
     <motion.div
@@ -111,14 +113,24 @@ export function SwipeCard({ paper, inNiche, onDecide, registerFling, returnFrom 
 
         <div className="px-6 pt-6 sm:px-8 sm:pt-8">
           <div className="flex flex-wrap items-center gap-1.5">
-            {inNiche && (
-              <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">★ In your niche</span>
+            {primary ? (
+              <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
+                {fieldOf(primary).label} › {areaLabel(primary)} <span className="font-normal text-primary-700/70">{primary}</span>
+              </span>
+            ) : (
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">Uncategorised</span>
             )}
-            {areas.map((a) => (
-              <span key={a} className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
-                {a}
+            {crossLists.map((c) => (
+              <span key={c} title={areaLabel(c)} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600">
+                also {c}
               </span>
             ))}
+            {evidence?.status === 'likely' && (
+              <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">Likely niche category</span>
+            )}
+            {evidence?.status === 'uncertain' && evidence.seen >= 2 && (
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Testing this category</span>
+            )}
           </div>
           <h2 className="mt-4 text-2xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-[1.7rem]">
             {paper.title}
