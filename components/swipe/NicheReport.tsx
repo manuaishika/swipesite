@@ -9,21 +9,9 @@ const STAGE_TITLES = { explore: 'Explore broadly', narrow: 'Narrow down', focus:
 const pct = (x: number) => `${Math.round(x * 100)}%`
 
 const METHOD_STEPS = [
-  {
-    stage: 'explore',
-    title: '1. Explore broadly',
-    body: `Rate at least ${METHOD.exploreMinRatings} abstracts from at least ${METHOD.exploreMinCategories} arXiv categories. The deck rotates through categories so early likes don't decide anything.`,
-  },
-  {
-    stage: 'narrow',
-    title: '2. Narrow down',
-    body: `Each category gets an interest rate with a 90% range, compared with your own average. The deck shows more from the categories it is least sure about.`,
-  },
-  {
-    stage: 'focus',
-    title: '3. Focus',
-    body: `A category counts as a likely niche only with at least ${METHOD.minRatingsForLikely} ratings and a range that sits above your average. Topics inside it show where to go deeper.`,
-  },
+  { stage: 'explore', title: '1. Explore', body: `Rate ${METHOD.exploreMinRatings}+ papers from ${METHOD.exploreMinCategories}+ categories. Nothing is concluded yet.` },
+  { stage: 'narrow', title: '2. Narrow', body: 'Categories you rate above your average get more papers, to check they hold up.' },
+  { stage: 'focus', title: '3. Focus', body: `A category counts once it's clearly above your average over ${METHOD.minRatingsForLikely}+ ratings.` },
 ] as const
 
 export function NicheReport({ niche, picks, guest = false }: { niche: Niche; picks: NichePick[]; guest?: boolean }) {
@@ -50,18 +38,19 @@ export function NicheReport({ niche, picks, guest = false }: { niche: Niche; pic
         <p className="mt-6 text-sm font-semibold uppercase tracking-widest text-white/70">
           Stage {niche.stageIndex} of 3 · {STAGE_TITLES[niche.stage]}
         </p>
-        <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-4xl">
+        <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-4xl">
           {niche.stage === 'focus'
             ? `Evidence points to ${niche.likely.map((c) => c.name).slice(0, 2).join(' and ')}`
             : niche.swipes === 0
-              ? 'Start by rating abstracts across arXiv'
-              : 'Building evidence across categories'}
+              ? 'Start by rating a few abstracts'
+              : niche.stage === 'explore'
+                ? 'Still exploring'
+                : 'Narrowing down'}
         </h1>
         <p className="mt-3 max-w-2xl leading-relaxed text-white/85">{niche.nextStep}</p>
         {niche.swipes > 0 && (
           <p className="mt-3 text-sm text-white/70">
-            {niche.swipes} papers rated · {niche.categories.length} categories seen · {pct(niche.baseRate)} rated interesting
-            overall
+            {niche.swipes} rated · {niche.categories.length} categories · {pct(niche.baseRate)} interesting overall
           </p>
         )}
         <div className="mt-6 flex flex-wrap gap-3">

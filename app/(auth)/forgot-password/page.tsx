@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-primary-dark mb-4">
+            <h2 className="text-3xl font-semibold text-primary-dark mb-4">
               Check Your Email
             </h2>
             <p className="text-gray-600 mb-6">
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Login
           </Link>
-          <h2 className="mt-6 text-center text-4xl font-extrabold text-primary-dark">
+          <h2 className="mt-6 text-center text-4xl font-semibold text-primary-dark">
             Reset Your Password
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-bold rounded-xl text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all shadow-lg"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all shadow-lg"
             >
               {loading ? 'Sending...' : 'Send Reset Link'}
             </button>

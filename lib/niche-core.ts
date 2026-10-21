@@ -284,30 +284,30 @@ export function nicheFromTally(t: NicheTally): Niche {
     stage = 'explore'
     stageProgress =
       0.5 * Math.min(1, t.swipes / METHOD.exploreMinRatings) + 0.5 * Math.min(1, breadth / METHOD.exploreMinCategories)
-    const need: string[] = []
-    if (t.swipes < METHOD.exploreMinRatings) need.push(`${METHOD.exploreMinRatings - t.swipes} more papers`)
-    if (breadth < METHOD.exploreMinCategories)
-      need.push(`papers from ${METHOD.exploreMinCategories - breadth} more categor${METHOD.exploreMinCategories - breadth === 1 ? 'y' : 'ies'}`)
-    nextStep = `Sample broadly first: rate ${need.join(' and ')}. Early likes are noisy, so nothing is concluded yet.`
+    const morePapers = Math.max(0, METHOD.exploreMinRatings - t.swipes)
+    const moreCats = Math.max(0, METHOD.exploreMinCategories - breadth)
+    nextStep =
+      morePapers && moreCats
+        ? `Rate ${morePapers} more papers, from at least ${moreCats} more categor${moreCats === 1 ? 'y' : 'ies'}. Nothing is concluded before that.`
+        : morePapers
+          ? `Rate ${morePapers} more papers. Nothing is concluded before that.`
+          : `Rate papers from ${moreCats} more categor${moreCats === 1 ? 'y' : 'ies'}. Nothing is concluded before that.`
   } else if (likely.length === 0) {
     stage = 'narrow'
     const best = leading[0]
     stageProgress = best ? Math.min(0.95, best.seen / METHOD.minRatingsForLikely) : 0.1
     if (baseRate > 0.8) {
-      nextStep = `You marked ${pct(baseRate)} of papers as interesting, so no category stands out yet. Be pickier: swipe right only on work you'd actually want to do.`
+      nextStep = `You marked ${pct(baseRate)} of papers interesting, so nothing stands out. Swipe right only on work you'd really do.`
     } else if (best) {
-      nextStep =
-        best.seen < METHOD.minRatingsForLikely
-          ? `${best.name} looks promising (${n1(best.likes)} of ${n1(best.seen)} interesting, your average is ${pct(baseRate)}). The deck will show more from it until there are at least ${METHOD.minRatingsForLikely} ratings.`
-          : `${best.name} is above your average but not clearly yet (${pct(best.low)}–${pct(best.high)} vs ${pct(baseRate)}). More ratings there will settle it.`
+      nextStep = `${best.name} looks promising (${n1(best.likes)} of ${n1(best.seen)}). A few more papers from it will show whether that holds up.`
     } else {
-      nextStep = `No category is above your average (${pct(baseRate)}) yet. The deck is testing the categories it knows least about.`
+      nextStep = `Nothing stands out yet. You'll see more papers from categories you've barely rated.`
     }
   } else {
     stage = 'focus'
     stageProgress = Math.min(1, likely[0].seen / (METHOD.minRatingsForLikely * 2))
     const top = likely[0]
-    nextStep = `${top.name} is clearly above your average: ${pct(top.rate)} interesting (90% range ${pct(top.low)}–${pct(top.high)}) vs ${pct(baseRate)} overall, from ${n1(top.seen)} ratings. Keep rating to firm it up and to see which topics inside it you prefer.`
+    nextStep = `${top.name}: ${n1(top.likes)} of ${n1(top.seen)} interesting, well above your ${pct(baseRate)} average.`
   }
 
   const topicSource = (likely.length ? likely : leading.slice(0, 2)).map((c) => c.code)

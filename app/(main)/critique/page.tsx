@@ -18,7 +18,7 @@ export default async function CritiquePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Research Idea Critique</h1>
+        <h1 className="text-4xl font-semibold text-gray-900 mb-2">Research Idea Critique</h1>
         <p className="text-gray-600">
           Get AI-powered feedback on your research ideas before you spend months working on them. 
           Understand if your idea is incremental or foundational, identify potential issues, 

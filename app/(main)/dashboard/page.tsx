@@ -32,7 +32,7 @@ const SECONDARY = [
   { href: '/compare', label: 'Compare', body: 'Put papers side by side', icon: GitCompare },
   { href: '/collaborations', label: 'Collaborate', body: 'Find research partners', icon: Users },
   { href: '/conferences', label: 'Conferences', body: 'Upcoming venues and deadlines', icon: Calendar },
-  { href: '/opportunities', label: 'Opportunities', body: 'Reach out to researchers', icon: Mail },
+  { href: '/opportunities', label: 'Opportunities', body: 'Open positions and calls', icon: Mail },
   { href: '/critique', label: 'Idea critique', body: 'Feedback on a research idea', icon: Lightbulb },
 ]
 
@@ -128,7 +128,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Hi {name}</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Hi {name}</h1>
       <p className="mt-1 text-gray-600">Rate abstracts across arXiv to build up evidence for your niche, category by category, then review what you picked with other researchers.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
           <div className="mt-4 max-w-sm">
             <StageStepper niche={niche} onDark />
           </div>
-          <h2 className="mt-4 text-2xl font-bold leading-tight">
+          <h2 className="mt-4 text-2xl font-semibold leading-tight">
             {niche.stage === 'focus'
               ? `Evidence points to ${niche.likely[0].name}`
               : niche.swipes === 0
@@ -186,7 +186,7 @@ export default async function DashboardPage() {
           <div className="flex items-center gap-2 text-sm font-semibold text-primary">
             <MessagesSquare className="h-4 w-4" /> Peer review
           </div>
-          <h2 className="mt-3 text-2xl font-bold leading-tight text-gray-900">
+          <h2 className="mt-3 text-2xl font-semibold leading-tight text-gray-900">
             {waitingCount > 0 ? `${plural(waitingCount, 'pick')} waiting for your review` : 'Review what you picked'}
           </h2>
           {waiting.length > 0 ? (

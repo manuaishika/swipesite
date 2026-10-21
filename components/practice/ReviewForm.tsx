@@ -91,7 +91,7 @@ export function ReviewForm({ task }: { task: Task }) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">Review a peer&apos;s critique</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Review a peer&apos;s critique</h1>
         <Chip tone="teal">Anonymous author</Chip>
         {readOnly && <Chip>Submitted</Chip>}
       </div>
@@ -103,7 +103,7 @@ export function ReviewForm({ task }: { task: Task }) {
         <aside className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto">
           <Card className="p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">The abstract they critiqued</p>
-            <h2 className="mt-1 text-lg font-bold leading-snug text-gray-900">{task.abstract.title}</h2>
+            <h2 className="mt-1 text-lg font-semibold leading-snug text-gray-900">{task.abstract.title}</h2>
             <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800">{task.abstract.abstract}</p>
             <div className="mt-5 border-t border-gray-100 pt-3 text-xs text-gray-500">
               Source: <ArxivLink id={task.abstract.arxivId} url={task.abstract.arxivUrl} />. {ARXIV_ATTRIBUTION}

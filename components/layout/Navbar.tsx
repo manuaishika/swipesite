@@ -98,7 +98,7 @@ export function Navbar() {
           <div className="flex items-center gap-6">
             <Link
               href={session ? '/dashboard' : '/'}
-              className="text-2xl font-bold text-white flex items-center gap-2 hover:scale-105 transition-transform"
+              className="text-2xl font-semibold text-white flex items-center gap-2 hover:scale-105 transition-transform"
             >
               <BookOpen className="w-7 h-7" />
               <span>ResearchSwipe</span>
@@ -187,7 +187,7 @@ export function Navbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="hidden sm:inline-flex px-4 py-2 rounded-lg bg-white text-primary text-sm font-bold hover:bg-gray-100 transition-all shadow-lg"
+                  className="hidden sm:inline-flex px-4 py-2 rounded-lg bg-white text-primary text-sm font-semibold hover:bg-gray-100 transition-all shadow-lg"
                 >
                   Sign up Free
                 </Link>
@@ -259,13 +259,13 @@ export function Navbar() {
               <div className="grid grid-cols-2 gap-2 px-4 pt-2">
                 <Link
                   href="/login"
-                  className="rounded-lg border border-primary py-2.5 text-center text-sm font-bold text-primary"
+                  className="rounded-lg border border-primary py-2.5 text-center text-sm font-semibold text-primary"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/register"
-                  className="rounded-lg bg-primary py-2.5 text-center text-sm font-bold text-white"
+                  className="rounded-lg bg-primary py-2.5 text-center text-sm font-semibold text-white"
                 >
                   Sign up free
                 </Link>

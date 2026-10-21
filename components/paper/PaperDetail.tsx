@@ -99,7 +99,7 @@ export function PaperDetail({ paper, userLiked, userSaved = false, guest = false
           ))}
         </div>
       )}
-      <h1 className="text-xl font-bold leading-snug text-gray-900 sm:text-2xl">{paper.title}</h1>
+      <h1 className="text-xl font-semibold leading-snug text-gray-900 sm:text-2xl">{paper.title}</h1>
 
       <div className="mt-3 space-y-1.5 text-sm text-gray-500">
         {paper.authors.length > 0 && (

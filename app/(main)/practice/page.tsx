@@ -50,7 +50,7 @@ export default async function PracticeHome() {
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-accent p-6 text-white shadow-lg sm:p-10">
         <div className="max-w-2xl">
           <Chip tone="teal">Peer-review practice</Chip>
-          <h1 className="mt-4 text-2xl font-bold leading-tight sm:text-4xl">
+          <h1 className="mt-4 text-2xl font-semibold leading-tight sm:text-4xl">
             Get better at reasoning from an abstract alone.
           </h1>
           <p className="mt-3 text-base text-white/80 sm:text-lg">
@@ -71,7 +71,7 @@ export default async function PracticeHome() {
               >
                 <ClipboardCheck className="h-4 w-4" /> Review queue
                 {pending.length > 0 && (
-                  <span className="rounded-full bg-white px-2 text-xs font-bold text-primary">{pending.length}</span>
+                  <span className="rounded-full bg-white px-2 text-xs font-semibold text-primary">{pending.length}</span>
                 )}
               </Link>
             ) : (
@@ -177,7 +177,7 @@ export default async function PracticeHome() {
                   { label: 'Reviews received', value: reviewsReceived },
                 ].map((s) => (
                   <Card key={s.label} className="px-4 py-3 text-center lg:text-left xl:text-center">
-                    <div className="text-2xl font-bold tabular-nums text-gray-900">{s.value}</div>
+                    <div className="text-2xl font-semibold tabular-nums text-gray-900">{s.value}</div>
                     <div className="text-xs text-gray-500">{s.label}</div>
                   </Card>
                 ))}

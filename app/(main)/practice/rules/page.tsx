@@ -15,7 +15,7 @@ const ITEMS = [
 export default function RulesPage() {
   return (
     <PageShell>
-      <h1 className="text-3xl font-bold text-gray-900">Practice rules</h1>
+      <h1 className="text-3xl font-semibold text-gray-900">Practice rules</h1>
       <p className="mt-1 text-gray-600">Short version: do your own thinking, be specific and kind, and keep real tests out.</p>
       <div className="mt-5">
         <Rules />

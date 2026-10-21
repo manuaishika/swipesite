@@ -15,7 +15,7 @@ export default async function ReviewQueue() {
   const done = dash.queue.filter((q) => q.completed)
   return (
     <PageShell>
-      <h1 className="text-3xl font-bold text-gray-900">Review queue</h1>
+      <h1 className="text-3xl font-semibold text-gray-900">Review queue</h1>
       <p className="mt-1 text-gray-600">
         Score a peer&apos;s critique on clarity, evidence-vs-claim reasoning and alternatives, and leave one specific comment.
       </p>

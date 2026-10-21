@@ -187,7 +187,7 @@ export function PeerReviewThread({
     <section id="discussion" className="scroll-mt-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Peer review</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Peer review</h2>
           <p className="text-sm text-gray-500">
             {plural(counts.review, 'review')} · {plural(counts.question, 'question')} ·{' '}
             {plural(counts.discussion, 'discussion post')}

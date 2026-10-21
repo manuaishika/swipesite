@@ -108,7 +108,7 @@ export function SessionRunner({ sessionId, abstract, startedMs, deadlineMs, serv
               <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${remainingFrac * 100}%` }} />
             </div>
           </div>
-          <strong className={`text-2xl font-bold tabular-nums ${timeColor} ${critical ? 'animate-pulse' : ''}`}>{fmt(left)}</strong>
+          <strong className={`text-2xl font-semibold tabular-nums ${timeColor} ${critical ? 'animate-pulse' : ''}`}>{fmt(left)}</strong>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ export function SessionRunner({ sessionId, abstract, startedMs, deadlineMs, serv
           <aside className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:self-start lg:overflow-y-auto">
             <Card className="p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">Abstract</p>
-              <h1 className="mt-1 text-xl font-bold leading-snug text-gray-900">{abstract.title}</h1>
+              <h1 className="mt-1 text-xl font-semibold leading-snug text-gray-900">{abstract.title}</h1>
               <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800">{abstract.abstract}</p>
               <div className="mt-5 border-t border-gray-100 pt-3 text-xs text-gray-500">
                 Source: <ArxivLink id={abstract.arxivId} url={abstract.arxivUrl} />. {ARXIV_ATTRIBUTION}
@@ -146,7 +146,7 @@ export function SessionRunner({ sessionId, abstract, startedMs, deadlineMs, serv
                 <Card key={p.id} className="p-5 transition focus-within:border-primary focus-within:shadow-md">
                   <div className="flex items-start gap-3">
                     <span
-                      className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                      className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                         done ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500'
                       }`}
                     >

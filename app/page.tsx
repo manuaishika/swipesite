@@ -1,36 +1,51 @@
 import { redirect } from 'next/navigation'
 import { getSafeServerSession } from '@/lib/safe-session'
 import Link from 'next/link'
-import { SwipeDemo } from '@/components/landing/SwipeDemo'
+import { SwipeDemo, type DemoCard } from '@/components/landing/SwipeDemo'
 import { Navbar } from '@/components/layout/Navbar'
-import {
-  ArrowRight,
-  Bookmark,
-  Calendar,
-  Compass,
-  Layers,
-  Mail,
-  MessagesSquare,
-  PenLine,
-  Sparkles,
-  ThumbsUp,
-  Users,
-} from 'lucide-react'
+import { prisma } from '@/lib/prisma'
+import { stringToArray } from '@/lib/json-helpers'
+import { ArrowRight, Bookmark, Calendar, Mail, Reply, PenLine, Sparkles, Users } from 'lucide-react'
+
+export const dynamic = 'force-dynamic'
 
 const SECONDARY = [
-  { icon: Bookmark, title: 'Collection', body: 'Keep the papers you picked' },
+  { icon: Bookmark, title: 'Collection', body: 'Papers you saved, with your tags' },
   { icon: PenLine, title: 'Practice critiques', body: 'Timed abstract critiques, peer-scored' },
-  { icon: Sparkles, title: 'Recommendations', body: 'More papers like your picks' },
-  { icon: Users, title: 'Collaborate', body: 'Find research partners' },
-  { icon: Calendar, title: 'Conferences', body: 'Venues and deadlines', href: '/conferences' },
-  { icon: Mail, title: 'Opportunities', body: 'Reach out to researchers', href: '/opportunities' },
+  { icon: Sparkles, title: 'Recommendations', body: 'More papers like the ones you pick' },
+  { icon: Users, title: 'Collaborate', body: 'Find people to work with' },
+  { icon: Calendar, title: 'Conferences', body: 'Upcoming venues and deadlines', href: '/conferences' },
+  { icon: Mail, title: 'Opportunities', body: 'Open positions and calls', href: '/opportunities' },
 ]
 
 const STEPS = [
-  { icon: Layers, title: 'Explore broadly', body: 'Rate abstracts across many arXiv categories before drawing any conclusion.' },
-  { icon: Compass, title: 'Narrow down', body: 'Compare your interest in each category against your own average, with a confidence range.' },
-  { icon: MessagesSquare, title: 'Focus and review', body: 'Go deeper where the evidence is strong, and review those papers with others.' },
+  { title: 'Rate abstracts', body: 'Swipe right on work you’d want to do, left on what you wouldn’t. Save anything for later.' },
+  { title: 'See your patterns', body: 'Your ratings are grouped by arXiv category, so you can see which areas you keep choosing.' },
+  { title: 'Discuss what you pick', body: 'Ask questions, follow up, and share short reviews with people reading the same papers.' },
 ]
+
+/** A few real papers from the database for the demo (falls back to built-in examples). */
+async function demoCards(): Promise<DemoCard[] | null> {
+  try {
+    const rows = await prisma.paper.findMany({
+      where: { categories: { not: '[]' }, abstract: { not: '' } },
+      orderBy: { createdAt: 'desc' },
+      take: 6,
+      select: { title: true, abstract: true, categories: true, keywords: true, publishedDate: true },
+    })
+    if (rows.length < 3) return null
+    return rows.map((r, i) => ({
+      title: r.title,
+      abstract: r.abstract,
+      category: stringToArray(r.categories)[0] ?? '',
+      keywords: stringToArray(r.keywords),
+      year: r.publishedDate ? new Date(r.publishedDate).getFullYear() : null,
+      like: [true, false, true, true, false, true][i % 6],
+    }))
+  } catch {
+    return null
+  }
+}
 
 export default async function Home() {
   const session = await getSafeServerSession()
@@ -39,131 +54,129 @@ export default async function Home() {
     redirect('/dashboard')
   }
 
+  const cards = await demoCards()
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-white">
       <Navbar />
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
         {/* hero */}
-        <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14">
           <div className="text-center lg:text-left">
-            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-primary-dark sm:text-6xl">
-              Read abstracts.
-              <br />
-              <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">Map your interests.</span>
-              <br />
-              Review what you pick.
+            <h1 className="text-3xl font-semibold leading-tight tracking-tight text-primary-dark sm:text-5xl">
+              Find the research you actually want to work on.
             </h1>
-            <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-gray-600 lg:mx-0">
-              Rate abstracts from across arXiv, swipe right on work you&apos;d want to do and left on what you
-              wouldn&apos;t. Each rating is evidence for its arXiv category, and over many ratings you can see which
-              categories really stand out for you. Then review the papers you picked with other researchers.
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-600 sm:text-lg lg:mx-0">
+              Read real arXiv abstracts one at a time and decide: would you work on this? Your answers, grouped by
+              arXiv category, show where your interest really is. Then talk the papers through with other researchers.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+            <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <Link
                 href="/swipe"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-lg font-bold text-white shadow-lg shadow-primary/30 transition hover:-translate-y-0.5 hover:bg-primary-light"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-base font-medium text-white shadow-sm transition hover:bg-primary-light sm:w-auto"
               >
-                Start rating abstracts <ArrowRight className="h-5 w-5" />
+                Start rating abstracts <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/login"
-                className="inline-flex items-center rounded-xl border-2 border-primary bg-white px-7 py-3.5 text-lg font-bold text-primary transition hover:bg-primary-50"
+                href="/discussions"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-primary/40 bg-white px-6 py-3 text-base font-medium text-primary transition hover:bg-primary-50 sm:w-auto"
               >
-                Log in
+                Browse discussions
               </Link>
             </div>
           </div>
-          <SwipeDemo />
+          <SwipeDemo cards={cards} />
         </section>
 
         {/* how it works */}
-        <ol className="mt-16 grid gap-4 sm:grid-cols-3">
-          {STEPS.map((s, i) => (
-            <li key={s.title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-2 font-semibold text-gray-900">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm text-white">{i + 1}</span>
-                <s.icon className="h-4 w-4 text-primary" /> {s.title}
-              </div>
-              <p className="mt-2 text-sm text-gray-600">{s.body}</p>
-            </li>
-          ))}
-        </ol>
+        <section className="mt-14 sm:mt-20">
+          <h2 className="text-center text-xl font-semibold text-gray-900 sm:text-2xl">How it works</h2>
+          <ol className="mt-6 grid gap-3 sm:grid-cols-3 sm:gap-4">
+            {STEPS.map((s, i) => (
+              <li key={s.title} className="rounded-2xl border border-gray-200 bg-white p-5">
+                <div className="flex items-center gap-2.5 font-medium text-gray-900">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">
+                    {i + 1}
+                  </span>
+                  {s.title}
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-gray-600">{s.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
 
-        {/* pillar 2 */}
-        <section className="mt-20 grid items-center gap-10 md:grid-cols-2">
+        {/* discussion */}
+        <section className="mt-14 grid items-center gap-8 sm:mt-20 md:grid-cols-2 md:gap-10">
           <div className="md:order-2">
-            <span className="text-sm font-semibold uppercase tracking-wide text-primary">Peer review</span>
-            <h2 className="mt-2 text-3xl font-bold text-primary-dark sm:text-4xl">You picked it. Now argue about it.</h2>
-            <p className="mt-4 text-lg leading-relaxed text-gray-600">
-              Every paper has a review thread. Write a structured review with a verdict, ask a question, or start a
-              discussion. Vote on the posts that help, and see at a glance whether reviewers find a paper promising,
-              mixed or unconvinced.
+            <h2 className="text-2xl font-semibold text-primary-dark sm:text-3xl">A discussion thread on every paper</h2>
+            <p className="mt-3 text-base leading-relaxed text-gray-600">
+              Ask what a result means, follow up on someone else&apos;s reading, or post a short review of what the paper
+              claims and how well it supports it. Upvote the replies that helped you understand it.
             </p>
+            <Link href="/discussions" className="mt-4 inline-flex items-center gap-1.5 font-medium text-primary hover:underline">
+              Read the discussions <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-          <div className="space-y-3 rounded-3xl bg-gradient-to-br from-primary/10 to-accent-light/10 p-6 sm:p-8 md:order-1">
-            <div className="rounded-2xl bg-white p-4 shadow-md">
+          <div className="space-y-3 rounded-3xl bg-gray-50 p-4 sm:p-6 md:order-1">
+            <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Example thread</p>
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
               <div className="flex items-center gap-2 text-sm">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">M</span>
-                <span className="font-semibold text-gray-900">maya</span>
-                <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-white">Review</span>
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">Promising</span>
+                <span className="font-medium text-gray-900">jon</span>
+                <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">Question</span>
               </div>
-              <p className="mt-2 text-sm text-gray-700">
-                <strong>Main claim:</strong> attention alone matches recurrent models on translation.{' '}
-                <strong>What&apos;s missing:</strong> how it scales to long documents.
+              <p className="mt-1.5 text-sm text-gray-700">Does the improvement hold on the smaller models too, or only at scale?</p>
+            </div>
+            <div className="ml-6 rounded-2xl bg-white p-4 shadow-sm">
+              <div className="flex items-center gap-2 text-sm">
+                <Reply className="h-3.5 w-3.5 text-gray-400" />
+                <span className="font-medium text-gray-900">maya</span>
+              </div>
+              <p className="mt-1.5 text-sm text-gray-700">
+                Table 3 has the smaller runs: the gap shrinks but is still there. Worth asking about variance across seeds.
               </p>
-              <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
-                <ThumbsUp className="h-3.5 w-3.5" /> 12
-              </div>
             </div>
-            <div className="rounded-2xl bg-white p-4 shadow-md">
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
               <div className="flex items-center gap-2 text-sm">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">J</span>
-                <span className="font-semibold text-gray-900">jon</span>
-                <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-800">Question</span>
+                <span className="font-medium text-gray-900">ari</span>
+                <span className="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">Review</span>
               </div>
-              <p className="mt-2 text-sm text-gray-700">Would the result hold without the large training budget?</p>
-            </div>
-            <div className="rounded-2xl bg-white p-4 shadow-md">
-              <p className="text-sm font-semibold text-gray-900">Reviewers&apos; verdict</p>
-              <div className="mt-2 flex h-2 overflow-hidden rounded-full">
-                <span className="bg-emerald-500" style={{ width: '60%' }} />
-                <span className="bg-amber-400" style={{ width: '25%' }} />
-                <span className="bg-rose-500" style={{ width: '15%' }} />
-              </div>
+              <p className="mt-1.5 text-sm text-gray-700">
+                Clear claim and a careful setup. The main open question for me is how it behaves out of distribution.
+              </p>
             </div>
           </div>
         </section>
 
         {/* secondary */}
-        <section className="mt-20">
-          <h2 className="text-center text-2xl font-bold text-primary-dark">Also on ResearchSwipe</h2>
+        <section className="mt-14 sm:mt-20">
+          <h2 className="text-center text-xl font-semibold text-gray-900 sm:text-2xl">Also on ResearchSwipe</h2>
           <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
             {SECONDARY.map((f) => (
               <Link
                 key={f.title}
                 href={f.href ?? '/register'}
-                className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary"
+                className="rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-primary"
               >
                 <f.icon className="h-5 w-5 text-primary" />
-                <div className="mt-2 font-semibold text-gray-900">{f.title}</div>
-                <div className="mt-0.5 text-sm text-gray-500">{f.body}</div>
+                <div className="mt-2 text-sm font-medium text-gray-900 sm:text-base">{f.title}</div>
+                <div className="mt-0.5 text-xs text-gray-500 sm:text-sm">{f.body}</div>
               </Link>
             ))}
           </div>
         </section>
 
         {/* final CTA */}
-        <section className="mt-20 rounded-3xl bg-gradient-to-r from-primary to-primary-light p-10 text-center text-white shadow-xl sm:p-12">
-          <h2 className="text-3xl font-bold sm:text-4xl">A niche takes evidence</h2>
-          <p className="mx-auto mt-3 max-w-xl text-white/85">
-            Start with a broad sample of arXiv, narrow down category by category, and see the numbers behind every step.
+        <section className="mt-14 rounded-3xl bg-primary p-8 text-center text-white sm:mt-20 sm:p-12">
+          <h2 className="text-2xl font-semibold sm:text-3xl">Start with a few abstracts</h2>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-white/85 sm:text-base">
+            Read a few, decide on each, and see where your interest goes.
           </p>
           <Link
             href="/swipe"
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-lg font-bold text-primary shadow-lg transition hover:bg-gray-100"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-medium text-primary transition hover:bg-gray-100"
           >
-            Start rating <ArrowRight className="h-5 w-5" />
+            Start rating <ArrowRight className="h-4 w-4" />
           </Link>
         </section>
       </div>

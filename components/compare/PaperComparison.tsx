@@ -206,7 +206,7 @@ export function PaperComparison({ papers, userId }: PaperComparisonProps) {
       {result && (
         <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
           <div className="border-b pb-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Comparison Results</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Comparison Results</h2>
             <div className={`inline-block px-4 py-2 rounded-lg ${
               result.morePromising === 'paper1'
                 ? 'bg-green-100 text-green-800'

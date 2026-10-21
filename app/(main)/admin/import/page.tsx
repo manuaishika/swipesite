@@ -60,7 +60,7 @@ export default function ImportPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Import Papers from ArXiv</h1>
+      <h1 className="text-3xl font-semibold text-gray-900 mb-6">Import Papers from ArXiv</h1>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
         {error && (

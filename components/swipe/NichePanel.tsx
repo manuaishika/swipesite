@@ -20,7 +20,7 @@ export function StageStepper({ niche, onDark = false }: { niche: Niche; onDark?:
         return (
           <li key={s.n} className="flex flex-1 items-center gap-1.5">
             <span
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                 current
                   ? onDark ? 'bg-white text-primary' : 'bg-primary text-white'
                   : done
@@ -65,11 +65,8 @@ export function EvidenceRow({ c, baseRate }: { c: CategoryEvidence; baseRate: nu
         <div className="absolute inset-y-0 w-1 -translate-x-1/2 rounded-full bg-primary" style={{ left: `${c.rate * 100}%` }} />
         <div className="absolute -inset-y-1 w-px bg-gray-500" style={{ left: `${baseRate * 100}%` }} />
       </div>
-      <div className="mt-1 flex justify-between text-[11px] tabular-nums text-gray-500">
-        <span>
-          {n1(c.likes)} of {n1(c.seen)} interesting · {pct(c.rate)}
-        </span>
-        <span>range {pct(c.low)}–{pct(c.high)}</span>
+      <div className="mt-1 text-[11px] tabular-nums text-gray-500">
+        {n1(c.likes)} of {n1(c.seen)} interesting
       </div>
     </li>
   )
@@ -83,7 +80,7 @@ export function NichePanel({ niche, compact = false, guest = false }: { niche: N
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary">
           <FlaskConical className="h-4 w-4" />
         </span>
-        <h2 className="font-semibold text-gray-900">Finding your niche</h2>
+        <h2 className="font-semibold text-gray-900">Your interests</h2>
         <span className="ml-auto text-xs tabular-nums text-gray-500">{niche.swipes} rated</span>
       </div>
 
@@ -98,7 +95,7 @@ export function NichePanel({ niche, compact = false, guest = false }: { niche: N
       {rows.length > 0 && (
         <div className="mt-5">
           <div className="mb-2 flex items-baseline justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Evidence by arXiv category</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-500">By arXiv category</p>
             {niche.swipes > 0 && <p className="text-[11px] text-gray-400">your avg {pct(niche.baseRate)}</p>}
           </div>
           <ul className="space-y-3.5">
@@ -111,7 +108,7 @@ export function NichePanel({ niche, compact = false, guest = false }: { niche: N
 
       {!compact && niche.topics.length > 0 && (
         <div className="mt-5">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-gray-500">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-500">
             Topics in your {niche.likely.length ? 'likely niche' : 'leading categories'}
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -126,7 +123,7 @@ export function NichePanel({ niche, compact = false, guest = false }: { niche: N
 
       {!compact && guest && (
         <div className="mt-5 border-t border-gray-100 pt-4">
-          <Link href="/register?next=/niche" className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-light">
+          <Link href="/register?next=/niche" className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-light">
             Save my progress <ArrowRight className="h-4 w-4" />
           </Link>
           <p className="mt-2 text-center text-xs text-gray-500">Free account. Your ratings so far come with you.</p>

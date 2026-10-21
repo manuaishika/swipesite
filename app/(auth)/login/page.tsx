@@ -46,7 +46,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary/10">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-2xl shadow-2xl">
         <div>
-          <h2 className="mt-6 text-center text-4xl font-extrabold text-primary-dark">
+          <h2 className="mt-6 text-center text-4xl font-semibold text-primary-dark">
             Welcome Back
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
@@ -98,7 +98,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-bold rounded-xl text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all shadow-lg"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all shadow-lg"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>

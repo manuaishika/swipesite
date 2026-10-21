@@ -1,18 +1,13 @@
 import type { Metadata } from 'next'
-import localFont from 'next/font/local'
+import { DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 
-// New Spirit: the house font, used everywhere.
-const newSpirit = localFont({
-  src: [
-    { path: './fonts/NewSpirit-Light.otf', weight: '300', style: 'normal' },
-    { path: './fonts/NewSpirit-Regular.otf', weight: '400', style: 'normal' },
-    { path: './fonts/NewSpirit-Medium.otf', weight: '500', style: 'normal' },
-    { path: './fonts/NewSpirit-SemiBold.otf', weight: '600', style: 'normal' },
-    { path: './fonts/NewSpirit-Bold.otf', weight: '700', style: 'normal' },
-  ],
-  variable: '--font-new-spirit',
+// DM Sans: clean and light; weights above 600 aren't used anywhere.
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-sans',
   display: 'swap',
 })
 
@@ -27,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={newSpirit.variable}>
-      <body className={newSpirit.className}>
+    <html lang="en" className={dmSans.variable}>
+      <body className={dmSans.className}>
         <Providers>{children}</Providers>
       </body>
     </html>

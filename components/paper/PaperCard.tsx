@@ -29,7 +29,7 @@ export function PaperCard({ paper }: PaperCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-2xl h-full flex flex-col overflow-hidden">
       <div className="flex-1 p-8 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">{paper.title}</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">{paper.title}</h2>
 
         <div className="space-y-4 mb-6">
           <div className="flex items-start space-x-2">

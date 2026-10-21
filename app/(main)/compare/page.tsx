@@ -40,7 +40,7 @@ export default async function ComparePage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Compare Papers</h1>
+        <h1 className="text-4xl font-semibold text-gray-900 mb-2">Compare Papers</h1>
         <p className="text-gray-600">
           Select two papers to get an AI-powered comparison. Understand which paper is more promising, 
           what makes it stand out, and why it might be worth your time.

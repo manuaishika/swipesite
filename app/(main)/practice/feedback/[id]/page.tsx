@@ -39,7 +39,7 @@ export default async function FeedbackPage({ params }: { params: { id: string } 
         <Chip tone={n >= 2 ? 'teal' : 'amber'}>{n}/2 reviews received</Chip>
         <span className="text-sm text-gray-500">Reviewers are anonymous</span>
       </div>
-      <h1 className="mt-2 text-2xl font-bold leading-snug text-gray-900 sm:text-3xl">{f.abstract.title}</h1>
+      <h1 className="mt-2 text-2xl font-semibold leading-snug text-gray-900 sm:text-3xl">{f.abstract.title}</h1>
       <p className="mt-1 text-xs text-gray-500">
         Source: <ArxivLink id={f.abstract.arxivId} url={f.abstract.arxivUrl} />. {ARXIV_ATTRIBUTION}
       </p>
@@ -118,7 +118,7 @@ export default async function FeedbackPage({ params }: { params: { id: string } 
               {f.reviews.map((r, i) => (
                 <Card key={r.id} className="p-5">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-sm font-bold text-primary-700">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-sm font-semibold text-primary-700">
                       {String.fromCharCode(65 + i)}
                     </span>
                     <h3 className="font-semibold text-gray-900">Reviewer {String.fromCharCode(65 + i)}</h3>
