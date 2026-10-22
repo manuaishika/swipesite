@@ -5,6 +5,9 @@
 
 import { arrayToString } from './json-helpers'
 
+// arXiv's public API needs no key. Overridable so tests can point at a local stand-in.
+const ARXIV_API = process.env.ARXIV_API_URL || 'https://export.arxiv.org/api/query'
+
 export interface ArxivPaper {
   id: string
   title: string
@@ -47,7 +50,7 @@ export async function fetchArxivPapers(
   }
 
   // ArXiv API URL
-  const baseUrl = 'https://export.arxiv.org/api/query'
+  const baseUrl = ARXIV_API
   const searchParams = new URLSearchParams({
     search_query: query || 'all',
     start: '0',
@@ -78,7 +81,7 @@ export async function fetchArxivPapersByIds(ids: string[]): Promise<ArxivPaper[]
     id_list: ids.join(','),
     max_results: ids.length.toString(),
   })
-  const response = await fetch(`https://export.arxiv.org/api/query?${searchParams.toString()}`)
+  const response = await fetch(`${ARXIV_API}?${searchParams.toString()}`)
   if (!response.ok) {
     throw new Error(`ArXiv API error: ${response.statusText}`)
   }

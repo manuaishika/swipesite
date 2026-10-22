@@ -34,13 +34,11 @@ All rules live in one file, `lib/practice/service.ts`. API routes (`app/api/prac
 1. **Schema.** The build command already runs `prisma db push`, so the new `Practice*` tables are created on the next
    deploy. Locally: `npx prisma db push`. This only adds tables; it changes no existing ones.
 2. **Env.** Same as the rest of the app: `DATABASE_URL` (PostgreSQL), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`.
-3. **Seed the library** (needs network access to `export.arxiv.org`; run it once per database):
-   ```bash
-   npm run seed:practice -- --dry-run   # prints the titles it would load; check them
-   npm run seed:practice
-   ```
-   For production, run it locally with the production `DATABASE_URL` exported. The paper list is the `ARXIV_IDS`
-   array in `prisma/seed-practice.ts`.
+3. **The library fills itself.** The first visit to `/swipe` (or the daily job in `vercel.json`) pulls papers from
+   arXiv's public API (no key needed), spread across many categories plus an AI-safety topic, and links the
+   practice abstracts (`lib/practice/arxiv-ids.ts`). To do it by hand instead:
+   `npm run seed:practice` (add `-- --dry-run` to just print the titles). Optional: set `CRON_SECRET` in Vercel so
+   only Vercel's scheduler can force the daily run. Set `ARXIV_API_URL` only for tests.
 4. Log in, open **Practice** in the navbar. You need at least 3 accounts to see the whole loop.
 
 ## Tests

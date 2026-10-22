@@ -1,4 +1,5 @@
 {
   "buildCommand": "prisma generate && prisma db push && next build",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "crons": [{ "path": "/api/cron/arxiv", "schedule": "0 6 * * *" }]
 }
