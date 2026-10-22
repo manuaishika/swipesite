@@ -33,3 +33,30 @@ export function firstDeadline(deadline: string): Date | null {
   if (!m || monthIndex(m[1]) === undefined) return null
   return new Date(Number(m[3]), monthIndex(m[1]), Number(m[2]), 23, 59)
 }
+
+/** "NeurIPS 2026" -> "NeurIPS"; "NeurIPS Workshops 2026" -> "NeurIPS Workshops". */
+export function seriesName(name: string): string {
+  return name.replace(/\s+(19|20)\d{2}\s*$/, '').trim()
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+type Dated = { name: string; when: string }
+
+/**
+ * What comes after a past event: the next edition if it's already in the list, otherwise an
+ * estimate (most of these recur yearly, in the same month).
+ */
+export function nextEdition<T extends Dated>(past: T, all: T[]): { known: T } | { expected: string } | null {
+  const series = seriesName(past.name)
+  const end = eventEnd(past.when)
+  if (!end) return null
+  const later = all
+    .filter((c) => c !== past && seriesName(c.name) === series)
+    .map((c) => ({ c, start: eventStart(c.when) }))
+    .filter((x) => x.start && x.start > end)
+    .sort((a, b) => a.start!.getTime() - b.start!.getTime())[0]
+  if (later) return { known: later.c }
+  const start = eventStart(past.when) ?? end
+  return { expected: `${MONTH_NAMES[start.getMonth()]} ${start.getFullYear() + 1}` }
+}
