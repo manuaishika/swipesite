@@ -21,6 +21,8 @@ import { ActivityFeed } from '@/components/feed/ActivityFeed'
 import { getNiche } from '@/lib/niche'
 import type { Niche } from '@/lib/niche-core'
 import { StageStepper } from '@/components/swipe/NichePanel'
+import { ActiveDiscussions } from '@/components/discussion/ActiveDiscussions'
+import { PhysicsCard, Stagger, StaggerItem } from '@/components/motion/Physics'
 import { kindMeta, plural } from '@/lib/peer-review'
 
 export const dynamic = 'force-dynamic'
@@ -230,18 +232,24 @@ export default async function DashboardPage() {
         </section>
       </div>
 
+      <div className="mt-8">
+        <ActiveDiscussions limit={3} title="Join a discussion" />
+      </div>
+
       {/* everything else */}
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-gray-900">Also on ResearchSwipe</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stagger className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4" gap={0.06}>
           {SECONDARY.map((s) => (
-            <Link key={s.href} href={s.href} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary">
-              <s.icon className="h-5 w-5 text-primary" />
-              <div className="mt-2 text-sm font-semibold text-gray-900">{s.label}</div>
-              <div className="mt-0.5 text-xs text-gray-500">{s.body}</div>
-            </Link>
+            <StaggerItem key={s.href}>
+              <PhysicsCard href={s.href} className="h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" tilt={11}>
+                <s.icon className="h-5 w-5 text-primary" />
+                <div className="mt-2 text-sm font-medium text-gray-900">{s.label}</div>
+                <div className="mt-0.5 text-xs text-gray-500">{s.body}</div>
+              </PhysicsCard>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
       {activities.length > 0 && (

@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { SwipeDeck } from '@/components/swipe/SwipeDeck'
 import { transformPapers } from '@/lib/paper-helpers'
 import { stringToArray } from '@/lib/json-helpers'
-import { FetchArxivButton } from '@/components/paper/FetchArxivButton'
+import { AutoSync } from '@/components/swipe/AutoSync'
+import { ActiveDiscussions } from '@/components/discussion/ActiveDiscussions'
 import { getNicheTally } from '@/lib/niche'
 import { FIELDS, emptyTally, fieldOf, nicheFromTally, orderDeck, type NicheTally } from '@/lib/niche-core'
 
@@ -130,15 +131,18 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
         </p>
       </div>
       <FieldFilter fields={fields} active={field} />
+      <AutoSync needed={papers.length < 15} empty={papers.length === 0} />
       {papers.length === 0 && tally.swipes === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-          <p className="text-gray-900 text-lg font-semibold mb-2">No papers in the database yet</p>
-          <p className="text-gray-500 mb-6">Fetch papers from arXiv to get started.</p>
-          <FetchArxivButton />
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-lg font-semibold text-gray-900">Getting papers from arXiv</p>
+          <p className="mt-1 text-gray-500">The first batch takes a few seconds. This page refreshes by itself.</p>
         </div>
       ) : (
         <SwipeDeck key={field ?? 'all'} initialPapers={papers} initialTally={tally} initialSaved={saved} />
       )}
+      <div className="mt-12">
+        <ActiveDiscussions limit={3} title="Join a discussion" />
+      </div>
     </div>
   )
 }
@@ -169,17 +173,18 @@ async function GuestSwipePage({ field }: { field?: string }) {
         </p>
       </div>
       <FieldFilter fields={fields} active={field} />
+      <AutoSync needed={papers.length < 15} empty={papers.length === 0} />
       {papers.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-          <p className="text-lg font-semibold text-gray-900">No papers to rate yet</p>
-          <p className="mt-1 text-gray-500">
-            <Link href="/register" className="font-semibold text-primary hover:underline">Sign up</Link> to pull
-            papers in from arXiv.
-          </p>
+          <p className="text-lg font-semibold text-gray-900">Getting papers from arXiv</p>
+          <p className="mt-1 text-gray-500">The first batch takes a few seconds. This page refreshes by itself.</p>
         </div>
       ) : (
         <SwipeDeck key={field ?? 'all'} initialPapers={papers} initialTally={emptyTally()} guest />
       )}
+      <div className="mt-12">
+        <ActiveDiscussions limit={3} title="Join a discussion" />
+      </div>
     </div>
   )
 }

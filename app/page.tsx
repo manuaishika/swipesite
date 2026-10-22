@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation'
 import { getSafeServerSession } from '@/lib/safe-session'
-import Link from 'next/link'
 import { SwipeDemo, type DemoCard } from '@/components/landing/SwipeDemo'
 import { Navbar } from '@/components/layout/Navbar'
+import { ActiveDiscussions } from '@/components/discussion/ActiveDiscussions'
+import { PhysicsCard, PhysicsLink, Stagger, StaggerItem } from '@/components/motion/Physics'
 import { prisma } from '@/lib/prisma'
 import { stringToArray } from '@/lib/json-helpers'
-import { ArrowRight, Bookmark, Calendar, Mail, Reply, PenLine, Sparkles, Users } from 'lucide-react'
+import { ArrowRight, Bookmark, Calendar, Mail, PenLine, Sparkles, Users } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,18 +72,18 @@ export default async function Home() {
               arXiv category, show where your interest really is. Then talk the papers through with other researchers.
             </p>
             <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
-              <Link
+              <PhysicsLink
                 href="/swipe"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-base font-medium text-white shadow-sm transition hover:bg-primary-light sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-light sm:w-auto"
               >
                 Start rating abstracts <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
+              </PhysicsLink>
+              <PhysicsLink
                 href="/discussions"
-                className="inline-flex w-full items-center justify-center rounded-xl border border-primary/40 bg-white px-6 py-3 text-base font-medium text-primary transition hover:bg-primary-50 sm:w-auto"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-primary/40 bg-white px-6 py-3 text-base font-medium text-primary hover:bg-primary-50 sm:w-auto"
               >
                 Browse discussions
-              </Link>
+              </PhysicsLink>
             </div>
           </div>
           <SwipeDemo cards={cards} />
@@ -91,79 +92,51 @@ export default async function Home() {
         {/* how it works */}
         <section className="mt-14 sm:mt-20">
           <h2 className="text-center text-xl font-semibold text-gray-900 sm:text-2xl">How it works</h2>
-          <ol className="mt-6 grid gap-3 sm:grid-cols-3 sm:gap-4">
+          <Stagger as="ol" className="mt-6 grid gap-3 sm:grid-cols-3 sm:gap-4">
             {STEPS.map((s, i) => (
-              <li key={s.title} className="rounded-2xl border border-gray-200 bg-white p-5">
-                <div className="flex items-center gap-2.5 font-medium text-gray-900">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">
-                    {i + 1}
-                  </span>
-                  {s.title}
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-gray-600">{s.body}</p>
-              </li>
+              <StaggerItem as="li" key={s.title}>
+                <PhysicsCard className="h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-center gap-2.5 font-medium text-gray-900">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">
+                      {i + 1}
+                    </span>
+                    {s.title}
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-600">{s.body}</p>
+                </PhysicsCard>
+              </StaggerItem>
             ))}
-          </ol>
+          </Stagger>
         </section>
 
         {/* discussion */}
-        <section className="mt-14 grid items-center gap-8 sm:mt-20 md:grid-cols-2 md:gap-10">
-          <div className="md:order-2">
-            <h2 className="text-2xl font-semibold text-primary-dark sm:text-3xl">A discussion thread on every paper</h2>
+        <section className="mt-14 sm:mt-20">
+          <div className="max-w-2xl">
+            <h2 className="text-2xl font-semibold text-primary-dark sm:text-3xl">A discussion on every paper</h2>
             <p className="mt-3 text-base leading-relaxed text-gray-600">
               Ask what a result means, follow up on someone else&apos;s reading, or post a short review of what the paper
-              claims and how well it supports it. Upvote the replies that helped you understand it.
+              claims and how well it supports it. Pick one below to join.
             </p>
-            <Link href="/discussions" className="mt-4 inline-flex items-center gap-1.5 font-medium text-primary hover:underline">
-              Read the discussions <ArrowRight className="h-4 w-4" />
-            </Link>
           </div>
-          <div className="space-y-3 rounded-3xl bg-gray-50 p-4 sm:p-6 md:order-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Example thread</p>
-            <div className="rounded-2xl bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium text-gray-900">jon</span>
-                <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">Question</span>
-              </div>
-              <p className="mt-1.5 text-sm text-gray-700">Does the improvement hold on the smaller models too, or only at scale?</p>
-            </div>
-            <div className="ml-6 rounded-2xl bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-sm">
-                <Reply className="h-3.5 w-3.5 text-gray-400" />
-                <span className="font-medium text-gray-900">maya</span>
-              </div>
-              <p className="mt-1.5 text-sm text-gray-700">
-                Table 3 has the smaller runs: the gap shrinks but is still there. Worth asking about variance across seeds.
-              </p>
-            </div>
-            <div className="rounded-2xl bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium text-gray-900">ari</span>
-                <span className="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">Review</span>
-              </div>
-              <p className="mt-1.5 text-sm text-gray-700">
-                Clear claim and a careful setup. The main open question for me is how it behaves out of distribution.
-              </p>
-            </div>
+          <div className="mt-6">
+            <ActiveDiscussions limit={3} title="Active now" />
           </div>
         </section>
 
         {/* secondary */}
         <section className="mt-14 sm:mt-20">
           <h2 className="text-center text-xl font-semibold text-gray-900 sm:text-2xl">Also on ResearchSwipe</h2>
-          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
+          <Stagger className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3" gap={0.07}>
             {SECONDARY.map((f) => (
-              <Link
-                key={f.title}
-                href={f.href ?? '/register'}
-                className="rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-primary"
-              >
-                <f.icon className="h-5 w-5 text-primary" />
-                <div className="mt-2 text-sm font-medium text-gray-900 sm:text-base">{f.title}</div>
-                <div className="mt-0.5 text-xs text-gray-500 sm:text-sm">{f.body}</div>
-              </Link>
+              <StaggerItem key={f.title}>
+                <PhysicsCard href={f.href ?? '/register'} className="h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" tilt={12}>
+                  <f.icon className="h-5 w-5 text-primary" />
+                  <div className="mt-2 text-sm font-medium text-gray-900 sm:text-base">{f.title}</div>
+                  <div className="mt-0.5 text-xs text-gray-500 sm:text-sm">{f.body}</div>
+                </PhysicsCard>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </section>
 
         {/* final CTA */}
@@ -172,12 +145,12 @@ export default async function Home() {
           <p className="mx-auto mt-2 max-w-lg text-sm text-white/85 sm:text-base">
             Read a few, decide on each, and see where your interest goes.
           </p>
-          <Link
+          <PhysicsLink
             href="/swipe"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-medium text-primary transition hover:bg-gray-100"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-medium text-primary hover:bg-gray-100"
           >
             Start rating <ArrowRight className="h-4 w-4" />
-          </Link>
+          </PhysicsLink>
         </section>
       </div>
     </div>
