@@ -3,16 +3,8 @@
 import { ExternalLink, BookmarkPlus, Bookmark } from 'lucide-react'
 import { useState } from 'react'
 import { format } from 'date-fns'
+import { CONFERENCES, CONFERENCE_CATEGORIES } from '@/lib/conferences'
 import { eventEnd, eventStart, firstDeadline, nextEdition } from '@/lib/event-dates'
-
-type Conference = {
-  name: string
-  when: string
-  where: string
-  deadline: string
-  url: string
-  category: string
-}
 
 export default function ConferencesPage() {
   const [savedConferences, setSavedConferences] = useState<string[]>([])
@@ -27,205 +19,8 @@ export default function ConferencesPage() {
     )
   }
 
-  const conferences: Conference[] = [
-    // Machine Learning & AI
-    {
-      name: 'NeurIPS 2026',
-      when: 'Dec 6-12, 2026',
-      where: 'Vancouver, Canada',
-      deadline: 'May 16, 2026',
-      url: 'https://neurips.cc/',
-      category: 'machine learning',
-    },
-    {
-      name: 'ICML 2026',
-      when: 'Jul 12-18, 2026',
-      where: 'Vienna, Austria',
-      deadline: 'Feb 2, 2026',
-      url: 'https://icml.cc/',
-      category: 'machine learning',
-    },
-    {
-      name: 'ICLR 2027',
-      when: 'May 3-7, 2027',
-      where: 'Kigali, Rwanda',
-      deadline: 'Sep 28, 2026 (Oct 5, 2026)',
-      url: 'https://iclr.cc/',
-      category: 'machine learning',
-    },
-    {
-      name: 'AAAI 2027',
-      when: 'Feb 22-Mar 2, 2027',
-      where: 'San Francisco, USA',
-      deadline: 'Aug 8, 2026 (Aug 15, 2026)',
-      url: 'https://aaai.org/aaai-conference/',
-      category: 'artificial intelligence',
-    },
-    {
-      name: 'IJCAI 2026',
-      when: 'Aug 22-29, 2026',
-      where: 'Jeju, South Korea',
-      deadline: 'Jan 15, 2026 (Jan 22, 2026)',
-      url: 'https://www.ijcai.org/',
-      category: 'artificial intelligence',
-    },
-    
-    // Computer Vision
-    {
-      name: 'CVPR 2026',
-      when: 'Jun 14-19, 2026',
-      where: 'Seattle, USA',
-      deadline: 'Nov 15, 2025',
-      url: 'https://cvpr.thecvf.com/',
-      category: 'computer vision',
-    },
-    {
-      name: 'ICCV 2027',
-      when: 'Oct 10-17, 2027',
-      where: 'Montreal, Canada',
-      deadline: 'Mar 10, 2027',
-      url: 'https://iccv2027.thecvf.com/',
-      category: 'computer vision',
-    },
-    {
-      name: 'ECCV 2026',
-      when: 'Sep 6-12, 2026',
-      where: 'Milan, Italy',
-      deadline: 'Mar 7, 2026',
-      url: 'https://eccv2026.ecva.net/',
-      category: 'computer vision',
-    },
-    {
-      name: 'WACV 2027',
-      when: 'Jan 4-8, 2027',
-      where: 'Hawaii, USA',
-      deadline: 'Jul 15, 2026',
-      url: 'https://wacv2027.thecvf.com/',
-      category: 'computer vision',
-    },
-    
-    // NLP
-    {
-      name: 'ACL 2026',
-      when: 'Jul 26-31, 2026',
-      where: 'Bangkok, Thailand',
-      deadline: 'Feb 15, 2026',
-      url: 'https://2026.aclweb.org/',
-      category: 'NLP',
-    },
-    {
-      name: 'EMNLP 2026',
-      when: 'Nov 8-12, 2026',
-      where: 'Abu Dhabi, UAE',
-      deadline: 'Jun 1, 2026',
-      url: 'https://2026.emnlp.org/',
-      category: 'NLP',
-    },
-    {
-      name: 'NAACL 2027',
-      when: 'Jun 6-11, 2027',
-      where: 'Toronto, Canada',
-      deadline: 'Dec 15, 2026',
-      url: 'https://2027.naacl.org/',
-      category: 'NLP',
-    },
-    {
-      name: 'COLING 2026',
-      when: 'Aug 17-22, 2026',
-      where: 'Seoul, South Korea',
-      deadline: 'Apr 20, 2026',
-      url: 'https://coling2026.org/',
-      category: 'NLP',
-    },
-    
-    // Robotics
-    {
-      name: 'ICRA 2026',
-      when: 'May 18-22, 2026',
-      where: 'Philadelphia, USA',
-      deadline: 'Sep 15, 2025',
-      url: 'https://2026.ieee-icra.org/',
-      category: 'robotics',
-    },
-    {
-      name: 'IROS 2026',
-      when: 'Oct 4-8, 2026',
-      where: 'Prague, Czech Republic',
-      deadline: 'Mar 1, 2026',
-      url: 'https://iros2026.org/',
-      category: 'robotics',
-    },
-    {
-      name: 'CoRL 2026',
-      when: 'Nov 15-18, 2026',
-      where: 'Singapore',
-      deadline: 'Jun 20, 2026',
-      url: 'https://www.robot-learning.org/',
-      category: 'robotics',
-    },
-    {
-      name: 'RSS 2026',
-      when: 'Jul 12-16, 2026',
-      where: 'Ann Arbor, USA',
-      deadline: 'Jan 31, 2026',
-      url: 'https://roboticsconference.org/',
-      category: 'robotics',
-    },
-    
-    // HCI
-    {
-      name: 'CHI 2026',
-      when: 'May 9-14, 2026',
-      where: 'Boston, USA',
-      deadline: 'Sep 15, 2025',
-      url: 'https://chi2026.acm.org/',
-      category: 'HCI',
-    },
-    {
-      name: 'UIST 2026',
-      when: 'Oct 11-14, 2026',
-      where: 'Tokyo, Japan',
-      deadline: 'Apr 1, 2026',
-      url: 'https://uist.acm.org/2026/',
-      category: 'HCI',
-    },
-    {
-      name: 'IUI 2027',
-      when: 'Mar 23-26, 2027',
-      where: 'Sydney, Australia',
-      deadline: 'Oct 1, 2026',
-      url: 'https://iui.acm.org/2027/',
-      category: 'HCI',
-    },
-    
-    // Workshops
-    {
-      name: 'NeurIPS Workshops 2026',
-      when: 'Dec 13-14, 2026',
-      where: 'Vancouver, Canada',
-      deadline: 'Sep-Oct 2026',
-      url: 'https://neurips.cc/',
-      category: 'workshops',
-    },
-    {
-      name: 'ICML Workshops 2026',
-      when: 'Jul 19, 2026',
-      where: 'Vienna, Austria',
-      deadline: 'Apr-May 2026',
-      url: 'https://icml.cc/',
-      category: 'workshops',
-    },
-    {
-      name: 'ICLR Workshops 2027',
-      when: 'May 8, 2027',
-      where: 'Kigali, Rwanda',
-      deadline: 'Feb-Mar 2027',
-      url: 'https://iclr.cc/',
-      category: 'workshops',
-    },
-  ]
-
-  const categories = ['all', 'machine learning', 'artificial intelligence', 'computer vision', 'NLP', 'robotics', 'HCI', 'workshops']
+  const conferences = CONFERENCES
+  const categories = CONFERENCE_CATEGORIES
 
   // Everything below is worked out from today's date, so nothing needs editing as time passes.
   const now = new Date()
@@ -277,7 +72,7 @@ export default function ConferencesPage() {
           {conf.name} <ExternalLink className="h-3.5 w-3.5" />
         </a>
         <p className="mt-0.5 text-sm text-gray-600">
-          {conf.when} · {conf.where}
+          {conf.approx ? '~' : ''}{conf.when} · {conf.where}
         </p>
       </div>
       <div className="sm:w-72">
@@ -296,7 +91,7 @@ export default function ConferencesPage() {
         <div className="min-w-0 flex-1">
           <span className="font-medium text-gray-700">{conf.name}</span>
           <p className="mt-0.5 text-sm text-gray-500">
-            Took place {conf.when} · {conf.where}
+            Took place {conf.approx ? '~' : ''}{conf.when} · {conf.where}
           </p>
         </div>
         <div className="sm:w-80">
@@ -337,7 +132,7 @@ export default function ConferencesPage() {
         Today is {format(now, 'd MMMM yyyy')}. Only events that haven&apos;t happened yet are listed first; finished ones are in their own tab with the next edition.
       </p>
       <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-        Dates and locations are compiled by hand and can change. Always confirm on the official site before planning.
+        Dates and locations are compiled by hand and can change. Always confirm on the official site before planning. A ~ means the dates are estimated from the previous edition.
       </p>
 
       <div className="mt-5 flex gap-2 overflow-x-auto pb-1">

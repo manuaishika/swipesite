@@ -11,7 +11,13 @@ export function eventEnd(when: string): Date | null {
   if (!year) return null
   const parts = Array.from(when.matchAll(/([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})(?:\s*[-–]\s*(\d{1,2})\b)?/g))
   const last = parts[parts.length - 1]
-  if (!last || monthIndex(last[1]) === undefined) return null
+  if (!last) {
+    // month only ("Mar 2027"): treat as the whole month
+    const m = when.match(/^([A-Za-z]{3})[a-z]*\s+\d{4}$/)
+    if (!m || monthIndex(m[1]) === undefined) return null
+    return new Date(Number(year), monthIndex(m[1]) + 1, 0, 23, 59)
+  }
+  if (monthIndex(last[1]) === undefined) return null
   return new Date(Number(year), monthIndex(last[1]), Number(last[3] ?? last[2]), 23, 59)
 }
 
@@ -19,6 +25,10 @@ export function eventEnd(when: string): Date | null {
 export function eventStart(when: string): Date | null {
   const year = when.match(/(\d{4})\s*$/)?.[1]
   const first = when.match(/([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})/)
+  if (year && !first) {
+    const m = when.match(/^([A-Za-z]{3})[a-z]*\s+\d{4}$/)
+    return m && monthIndex(m[1]) !== undefined ? new Date(Number(year), monthIndex(m[1]), 1) : null
+  }
   if (!year || !first || monthIndex(first[1]) === undefined) return null
   const end = eventEnd(when)
   const start = new Date(Number(year), monthIndex(first[1]), Number(first[2]))
