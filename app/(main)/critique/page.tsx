@@ -11,6 +11,7 @@ export default async function CritiquePage() {
         title="Idea critique"
         body="Get feedback on a research idea. Log in to use it."
         next="/critique"
+        demo="idea"
       />
     )
   }

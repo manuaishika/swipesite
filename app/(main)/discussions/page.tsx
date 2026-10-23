@@ -129,7 +129,7 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
         <div className="min-w-0 space-y-8">
           {/* your picks, waiting for a review */}
           {!userId ? (
-            <LoginToParticipate action="review the papers you pick" next="/discussions" />
+            <LoginToParticipate action="review the papers you pick" next="/discussions" demo="review" />
           ) : (
             <section>
               <div className="mb-3 flex items-baseline justify-between">

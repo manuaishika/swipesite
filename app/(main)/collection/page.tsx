@@ -16,6 +16,7 @@ export default async function CollectionPage({ searchParams }: { searchParams: {
         title="Your collection"
         body="Papers you swipe right on or save are kept here. Log in to see yours."
         next="/collection"
+        demo="save"
       />
     )
   }

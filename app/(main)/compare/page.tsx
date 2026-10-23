@@ -13,6 +13,7 @@ export default async function ComparePage() {
         title="Compare papers"
         body="Compare puts the papers you've saved side by side. Log in to use it."
         next="/compare"
+        demo="save"
       />
     )
   }

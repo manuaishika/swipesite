@@ -12,6 +12,7 @@ export default async function FeedPage() {
         title="Your feed"
         body="See what the researchers you follow are reading. Log in to see your feed."
         next="/feed"
+        demo="profile"
       />
     )
   }

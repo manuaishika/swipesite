@@ -167,7 +167,7 @@ export default async function PracticeHome() {
         {/* activity */}
         <aside className="space-y-6">
           {!userId ? (
-            <LoginToParticipate action="practise and get peer feedback" next="/practice" />
+            <LoginToParticipate action="practise and get peer feedback" next="/practice" demo="practice" />
           ) : (
             <>
               <div className="grid grid-cols-3 gap-3 lg:grid-cols-1 xl:grid-cols-3">

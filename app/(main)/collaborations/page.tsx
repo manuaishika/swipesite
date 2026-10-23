@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { CollaborationsList } from '@/components/collaboration/CollaborationsList'
 import { safeLoad } from '@/lib/safe-load'
 import { DbUnavailable } from '@/components/DbUnavailable'
+import { DemoPlayer } from '@/components/auth/DemoPlayer'
 
 export default async function CollaborationsPage() {
   // Public: anyone can browse collaborations; requesting or posting needs an account.
@@ -52,6 +53,7 @@ export default async function CollaborationsPage() {
           Post Collaboration
         </Link>
       </div>
+      {!userId && <DemoPlayer demo="collab" className="mb-6 max-w-xl" />}
       <CollaborationsList collaborations={collaborations} userId={userId} />
     </div>
   )

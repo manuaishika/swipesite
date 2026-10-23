@@ -223,7 +223,7 @@ export function PeerReviewThread({
       {/* composer */}
       {!userId ? (
         <div className="mt-4">
-          <LoginToParticipate action="write a review or join the discussion" next={here} />
+          <LoginToParticipate action="write a review or join the discussion" next={here} demo="review" />
         </div>
       ) : (
       <form onSubmit={submit} className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">

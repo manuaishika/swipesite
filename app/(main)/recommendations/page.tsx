@@ -14,6 +14,7 @@ export default async function RecommendationsPage() {
         title="Recommendations for you"
         body="Recommendations are built from the papers you pick. Log in to see yours."
         next="/recommendations"
+        demo="recs"
       />
     )
   }

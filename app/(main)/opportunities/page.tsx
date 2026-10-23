@@ -69,7 +69,7 @@ export default async function OpportunitiesPage() {
         </div>
       </div>
       <div className="mt-5">
-        {userId ? <OpportunityForm /> : <LoginToParticipate action="post an opportunity" next="/opportunities" />}
+        {userId ? <OpportunityForm /> : <LoginToParticipate action="post an opportunity" next="/opportunities" demo="opps" />}
       </div>
 
       <h2 className="mt-8 text-sm font-medium text-gray-500">Open · {sorted.length}</h2>

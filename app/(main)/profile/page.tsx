@@ -14,6 +14,7 @@ export default async function ProfilePage() {
         title="Your profile"
         body="Log in to see and edit your profile."
         next="/profile"
+        demo="profile"
       />
     )
   }

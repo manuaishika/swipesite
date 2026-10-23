@@ -4,7 +4,6 @@ import { ArrowLeft } from 'lucide-react'
 import { optionalUserId } from '@/lib/practice/require-user'
 import { LoginToParticipate } from '@/components/auth/LoginGate'
 import { getLibraryItem } from '@/lib/practice/service'
-import { PROMPTS } from '@/lib/practice/constants'
 import { AssessmentNotice } from '@/components/practice/Notices'
 import { StartForm } from '@/components/practice/StartForm'
 import { ArxivLink, Card, Chip, PageShell } from '@/components/practice/ui'
@@ -41,23 +40,21 @@ export default async function StartPage({ params }: { params: { id: string } }) 
           {userId ? (
             <StartForm abstractId={a.id} />
           ) : (
-            <LoginToParticipate action="start a timed practice session" next={`/practice/start/${a.id}`} />
+            <LoginToParticipate action="start a timed practice session" next={`/practice/start/${a.id}`} demo="practice" />
           )}
           <AssessmentNotice />
         </div>
         <Card className="h-fit p-6">
-          <h2 className="text-lg font-semibold text-gray-900">You&apos;ll answer</h2>
-          <p className="mt-0.5 text-sm text-gray-500">The abstract appears when the timer starts.</p>
-          <ol className="mt-4 space-y-3">
-            {PROMPTS.map((p, i) => (
-              <li key={p.id} className="flex gap-3 text-sm text-gray-800">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-700">
-                  {i + 1}
-                </span>
-                <span className="pt-0.5">{p.label}</span>
-              </li>
-            ))}
-          </ol>
+          <h2 className="text-lg font-semibold text-gray-900">What happens next</h2>
+          <p className="mt-1 text-sm leading-relaxed text-gray-600">
+            The abstract and the questions are shown together once the timer starts, so you read them cold, as you would
+            in a real review. Nothing is revealed beforehand.
+          </p>
+          <ul className="mt-4 space-y-2 text-sm text-gray-700">
+            <li>Write your answers before the time runs out.</li>
+            <li>Your answers are reviewed anonymously by other people.</li>
+            <li>You review someone else&apos;s answers in return.</li>
+          </ul>
         </Card>
       </div>
     </PageShell>
