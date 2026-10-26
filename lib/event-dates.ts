@@ -51,6 +51,9 @@ export function seriesName(name: string): string {
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
+// Series held every two years (the rest are yearly).
+const BIENNIAL = new Set(['ECCV', 'ICCV'])
+
 type Dated = { name: string; when: string }
 
 /**
@@ -68,5 +71,6 @@ export function nextEdition<T extends Dated>(past: T, all: T[]): { known: T } | 
     .sort((a, b) => a.start!.getTime() - b.start!.getTime())[0]
   if (later) return { known: later.c }
   const start = eventStart(past.when) ?? end
-  return { expected: `${MONTH_NAMES[start.getMonth()]} ${start.getFullYear() + 1}` }
+  const every = BIENNIAL.has(series) ? 2 : 1
+  return { expected: `${MONTH_NAMES[start.getMonth()]} ${start.getFullYear() + every}` }
 }
