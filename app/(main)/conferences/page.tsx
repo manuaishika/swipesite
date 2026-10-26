@@ -1,7 +1,7 @@
 'use client'
 
 import { ExternalLink, BookmarkPlus, Bookmark } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { CONFERENCES, CONFERENCE_CATEGORIES } from '@/lib/conferences'
 import { eventEnd, eventStart, firstDeadline, nextEdition } from '@/lib/event-dates'
@@ -10,6 +10,10 @@ export default function ConferencesPage() {
   const [savedConferences, setSavedConferences] = useState<string[]>([])
   const [filter, setFilter] = useState<string>('all')
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming')
+  // Today's date is only known in the browser. Reading it during the server render made the
+  // prerendered page differ from the client's and broke hydration.
+  const [now, setNow] = useState<Date | null>(null)
+  useEffect(() => setNow(new Date()), [])
 
   const toggleSave = (confName: string) => {
     setSavedConferences(prev => 
@@ -23,7 +27,14 @@ export default function ConferencesPage() {
   const categories = CONFERENCE_CATEGORIES
 
   // Everything below is worked out from today's date, so nothing needs editing as time passes.
-  const now = new Date()
+  if (!now) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <h1 className="text-2xl font-semibold text-primary-dark sm:text-3xl">Conferences & deadlines</h1>
+        <p className="mt-1 text-gray-600">Loading dates…</p>
+      </div>
+    )
+  }
   const dated = conferences
     .filter((c) => filter === 'all' || c.category === filter)
     .map((c) => ({ ...c, start: eventStart(c.when), end: eventEnd(c.when), due: firstDeadline(c.deadline) }))

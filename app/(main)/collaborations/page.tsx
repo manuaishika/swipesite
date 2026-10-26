@@ -7,6 +7,8 @@ import { safeLoad } from '@/lib/safe-load'
 import { DbUnavailable } from '@/components/DbUnavailable'
 import { DemoPlayer } from '@/components/auth/DemoPlayer'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CollaborationsPage() {
   // Public: anyone can browse collaborations; requesting or posting needs an account.
   const session = await getSafeServerSession()
