@@ -1,5 +1,10 @@
 {
-  "buildCommand": "prisma generate && prisma db push && next build",
+  "buildCommand": "prisma generate && node scripts/migrate.mjs && next build",
   "installCommand": "npm install",
-  "crons": [{ "path": "/api/cron/arxiv", "schedule": "0 6 * * *" }]
+  "crons": [
+    {
+      "path": "/api/cron/arxiv",
+      "schedule": "0 6 * * *"
+    }
+  ]
 }

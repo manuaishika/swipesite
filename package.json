@@ -5,13 +5,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db push && next build",
+    "build": "prisma generate && node scripts/migrate.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
     "seed:practice": "tsx prisma/seed-practice.ts",
     "test:practice": "tsx scripts/test-practice.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:migration": "prisma migrate dev --create-only"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
