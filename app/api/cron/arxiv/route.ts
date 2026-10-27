@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { syncArxiv } from '@/lib/arxiv-sync'
+import { pruneEvents } from '@/lib/metrics'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
@@ -13,7 +14,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
-    return NextResponse.json(await syncArxiv({ targets: 5, perTarget: 15, force: Boolean(secret) }))
+    const pruned = await pruneEvents().catch(() => 0)
+    return NextResponse.json({ ...(await syncArxiv({ targets: 5, perTarget: 15, force: Boolean(secret) })), prunedEvents: pruned })
   } catch (err) {
     console.error('cron arXiv sync failed:', err)
     return NextResponse.json({ error: 'Sync failed' }, { status: 500 })

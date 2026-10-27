@@ -380,3 +380,17 @@ model Notification {
 
   @@index([userId, readAt, createdAt])
 }
+
+// First-party product analytics and client error reports (no IPs, no third parties).
+// Page views use a random per-browser id; signed-in events also carry the user id.
+model AppEvent {
+  id        String   @id @default(cuid())
+  name      String   // "page_view" | "client_error"
+  userId    String?
+  anonId    String?
+  path      String?
+  props     String   @default("{}") // JSON
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+}

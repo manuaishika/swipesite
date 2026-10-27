@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { reportError } from '@/lib/telemetry-client'
 
 export default function Error({
   error,
@@ -11,6 +12,7 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error(error)
+    reportError(error, { digest: error.digest, boundary: 'page' })
   }, [error])
 
   return (
