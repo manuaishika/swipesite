@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { PaperDetail } from '@/components/paper/PaperDetail'
 import { PeerReviewThread } from '@/components/discussion/PeerReviewThread'
+import { reputationFor } from '@/lib/forum-trust'
 import { transformPaper } from '@/lib/paper-helpers'
 import { DbUnavailable } from '@/components/DbUnavailable'
 
@@ -32,6 +33,8 @@ export default async function PaperPage({ params }: { params: { id: string } }) 
           },
         },
         comments: {
+          // hidden posts (reported or moderated) are only shown to their author
+          where: userId ? { OR: [{ status: 'visible' }, { userId }] } : { status: 'visible' },
           include: {
             user: {
               select: {
@@ -39,6 +42,8 @@ export default async function PaperPage({ params }: { params: { id: string } }) 
                 name: true,
                 username: true,
                 avatar: true,
+                role: true,
+                expertise: true,
               },
             },
             replies: {
@@ -48,6 +53,8 @@ export default async function PaperPage({ params }: { params: { id: string } }) 
                     id: true,
                     name: true,
                     username: true,
+                    role: true,
+                    expertise: true,
                   },
                 },
               },
@@ -72,7 +79,8 @@ export default async function PaperPage({ params }: { params: { id: string } }) 
             prisma.savedPaper.findUnique({ where: { userId_paperId: { userId, paperId: paper.id } } }),
           ])
         : [null, null]
-      data = { paper, userLike, userSave }
+      const reputation = await reputationFor(paper.comments.flatMap((c) => [c.userId, ...c.replies.map((r) => r.userId)]))
+      data = { paper, userLike, userSave, reputation }
     }
   } catch (err) {
     console.error('[paper] data load failed:', err)
@@ -86,12 +94,12 @@ export default async function PaperPage({ params }: { params: { id: string } }) 
       </div>
     )
   }
-  const { paper, userLike, userSave } = data
+  const { paper, userLike, userSave, reputation } = data
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <Link href="/discussions" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900">
-        <ArrowLeft className="h-4 w-4" /> Peer review
+        <ArrowLeft className="h-4 w-4" /> Discussions
       </Link>
       <div className="mt-4 grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto">
@@ -103,7 +111,7 @@ export default async function PaperPage({ params }: { params: { id: string } }) 
             guest={!userId}
           />
         </div>
-        <PeerReviewThread paperId={paper.id} posts={paper.comments} userId={userId} />
+        <PeerReviewThread paperId={paper.id} posts={paper.comments} userId={userId} reputation={reputation} />
       </div>
     </div>
   )

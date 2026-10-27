@@ -3,16 +3,17 @@ import { format, formatDistanceToNow } from 'date-fns'
 import { getSafeServerSession } from '@/lib/safe-session'
 import { safeLoad } from '@/lib/safe-load'
 import { DbUnavailable } from '@/components/DbUnavailable'
-import { activityByWeek, isAdmin, nicheValidation, recentErrors, trafficByDay } from '@/lib/metrics'
+import { isModerator } from '@/lib/forum-trust'
+import { activityByWeek, nicheValidation, recentErrors, trafficByDay } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
 
 const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)}%`)
 
-// Visible only to addresses in ADMIN_EMAILS. Everyone else gets a 404.
+// Visible only to admins (ADMIN_EMAILS or the admin role). Everyone else gets a 404.
 export default async function MetricsPage() {
   const session = await getSafeServerSession()
-  if (!isAdmin(session?.user?.email)) notFound()
+  if (!(await isModerator(session?.user).catch(() => false))) notFound()
 
   const data = await safeLoad('metrics', async () => {
     const [weeks, niche, errors, traffic] = await Promise.all([activityByWeek(8), nicheValidation(), recentErrors(15), trafficByDay(14)])
@@ -35,7 +36,7 @@ export default async function MetricsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Metrics</h1>
+        <div className="flex items-baseline justify-between"><h1 className="text-2xl font-semibold text-gray-900">Metrics</h1><a href="/admin/moderation" className="text-sm font-medium text-primary hover:underline">Moderation →</a></div>
         <p className="mt-1 text-sm text-gray-600">
           North-star: <strong>weekly active contributors</strong>, people who rated, posted, replied or submitted a critique in the last 7 days.
         </p>

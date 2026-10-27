@@ -46,6 +46,11 @@ model User {
   notifications       Notification[]
   emailDigest         Boolean   @default(true)
   lastDigestAt        DateTime?
+
+  // Forum trust: "expert" shows a badge (set by an admin); "admin" can moderate
+  role                String    @default("member") // "member" | "expert" | "admin"
+  expertise           String?   // shown with the badge, e.g. "PhD student, interpretability"
+  commentReports      CommentReport[]
 }
 
 model Paper {
@@ -111,6 +116,7 @@ model Comment {
   content   String
   kind      String   @default("discussion") // "review" | "question" | "discussion"
   verdict   String?  // reviews only: "promising" | "mixed" | "skeptical"
+  status    String   @default("visible") // "visible" | "hidden" (by moderation or reports)
   upvotes   Int      @default(0)
   downvotes Int      @default(0)
   createdAt DateTime @default(now())
@@ -120,6 +126,7 @@ model Comment {
   paper     Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
   replies   CommentReply[]
   votes     CommentVote[]
+  reports   CommentReport[]
 
   @@index([paperId, createdAt])
 }
@@ -393,4 +400,20 @@ model AppEvent {
   createdAt DateTime @default(now())
 
   @@index([name, createdAt])
+}
+
+// Someone flagged a discussion post. Three reports hide it until a moderator looks.
+model CommentReport {
+  id         String    @id @default(cuid())
+  commentId  String
+  reporterId String
+  reason     String
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  comment  Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reporter User    @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, reporterId])
+  @@index([resolvedAt, createdAt])
 }

@@ -47,6 +47,7 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
 
     // Threads ordered by latest activity: newest post per paper.
     const latest = await prisma.comment.findMany({
+      where: { status: 'visible' },
       orderBy: { createdAt: 'desc' },
       distinct: ['paperId'],
       take: 60,

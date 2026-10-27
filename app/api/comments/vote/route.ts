@@ -20,6 +20,12 @@ export async function POST(request: Request) {
       )
     }
 
+    const target = await prisma.comment.findUnique({ where: { id: commentId }, select: { userId: true } })
+    if (!target) return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+    if (target.userId === session.user.id) {
+      return NextResponse.json({ error: "You can't vote on your own post" }, { status: 400 })
+    }
+
     // Check if vote exists
     const existingVote = await prisma.commentVote.findUnique({
       where: {

@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
-import { Loader2, MessagesSquare, Reply, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { BadgeCheck, Flag, Loader2, MessagesSquare, Reply, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import {
   MAX_POST_CHARS,
@@ -17,16 +17,19 @@ import {
   type Verdict,
 } from '@/lib/peer-review'
 import { loginHref } from '@/lib/login-href'
+
+const REPORT_REASONS = ['Spam or advertising', 'Rude or personal attack', 'Off-topic', 'Misleading or false', 'Real assessment material']
 import { LoginToParticipate } from '@/components/auth/LoginGate'
 
 type Vote = { voteType: string; userId: string }
-type UserLite = { id: string; name: string | null; username: string }
+type UserLite = { id: string; name: string | null; username: string; role?: string; expertise?: string | null }
 
 export interface ThreadPost {
   id: string
   content: string
   kind: string
   verdict: string | null
+  status?: string
   upvotes: number
   downvotes: number
   createdAt: Date | string
@@ -48,13 +51,37 @@ function Avatar({ user, size = 'md' }: { user: UserLite; size?: 'sm' | 'md' }) {
   )
 }
 
+/** Name, expert badge and reputation (net votes on their posts site-wide). */
+function AuthorName({ user, rep, small = false }: { user: UserLite; rep?: number; small?: boolean }) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      <span className={small ? 'font-medium text-gray-900' : 'font-semibold text-gray-900'}>{user.name || user.username}</span>
+      {(user.role === 'expert' || user.role === 'admin') && (
+        <span
+          className="inline-flex items-center gap-0.5 rounded-full bg-sky-50 px-1.5 py-0.5 text-[11px] font-medium text-sky-700"
+          title={user.expertise ? `Verified: ${user.expertise}` : 'Verified expert'}
+        >
+          <BadgeCheck className="h-3.5 w-3.5" /> {user.expertise ? user.expertise : 'Expert'}
+        </span>
+      )}
+      {rep !== undefined && rep !== 0 && (
+        <span className="text-[11px] tabular-nums text-gray-400" title="Net votes on their posts across the site">
+          {rep > 0 ? '+' : ''}{rep}
+        </span>
+      )}
+    </span>
+  )
+}
+
 export function PeerReviewThread({
   paperId,
   posts: initialPosts,
   userId,
+  reputation = {},
 }: {
   paperId: string
   posts: ThreadPost[]
+  reputation?: Record<string, number>
   /** null for visitors who aren't logged in: they can read everything but not post or vote */
   userId: string | null
 }) {
@@ -68,6 +95,18 @@ export function PeerReviewThread({
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
   const [sort, setSort] = useState<Sort>('top')
+  const [reporting, setReporting] = useState<string | null>(null)
+  const [reported, setReported] = useState<Record<string, boolean>>({})
+
+  async function report(commentId: string, reason: string) {
+    const res = await fetch('/api/comments/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commentId, reason }),
+    }).catch(() => null)
+    setReporting(null)
+    if (res?.ok) setReported((r) => ({ ...r, [commentId]: true }))
+  }
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
 
@@ -314,13 +353,18 @@ export function PeerReviewThread({
             <article key={p.id} id={`c-${p.id}`} className="scroll-mt-24 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
               <header className="flex flex-wrap items-center gap-2">
                 <Avatar user={p.user} />
-                <span className="font-semibold text-gray-900">{p.user.name || p.user.username}</span>
+                <AuthorName user={p.user} rep={reputation[p.user.id]} />
                 <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${km.badge}`}>{km.label}</span>
                 {vm && <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${vm.badge}`}>{vm.label}</span>}
                 <span className="ml-auto text-xs text-gray-400">
                   {formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}
                 </span>
               </header>
+              {p.status === 'hidden' && (
+                <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                  Only you can see this post: it was reported and is waiting for a moderator.
+                </p>
+              )}
               <div className="md mt-3 text-[15px] leading-relaxed text-gray-800">
                 <ReactMarkdown>{p.content}</ReactMarkdown>
               </div>
@@ -328,16 +372,18 @@ export function PeerReviewThread({
                 <button
                   type="button"
                   onClick={() => vote(p.id, 'upvote')}
+                  disabled={p.user.id === userId}
                   aria-label="Upvote"
-                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 ${myVote === 'upvote' ? 'text-primary' : 'text-gray-500 hover:bg-gray-100'}`}
+                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 ${myVote === 'upvote' ? 'text-primary' : 'text-gray-500 hover:bg-gray-100'} disabled:cursor-default disabled:hover:bg-transparent`}
                 >
                   <ThumbsUp className={`h-4 w-4 ${myVote === 'upvote' ? 'fill-current' : ''}`} /> {p.upvotes}
                 </button>
                 <button
                   type="button"
                   onClick={() => vote(p.id, 'downvote')}
+                  disabled={p.user.id === userId}
                   aria-label="Downvote"
-                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 ${myVote === 'downvote' ? 'text-rose-600' : 'text-gray-500 hover:bg-gray-100'}`}
+                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 ${myVote === 'downvote' ? 'text-rose-600' : 'text-gray-500 hover:bg-gray-100'} disabled:cursor-default disabled:hover:bg-transparent`}
                 >
                   <ThumbsDown className={`h-4 w-4 ${myVote === 'downvote' ? 'fill-current' : ''}`} /> {p.downvotes}
                 </button>
@@ -348,6 +394,39 @@ export function PeerReviewThread({
                 >
                   <Reply className="h-4 w-4" /> Reply{p.replies.length ? ` · ${p.replies.length}` : ''}
                 </button>
+                {userId && p.user.id !== userId && (
+                  <span className="relative ml-auto">
+                    {reported[p.id] ? (
+                      <span className="px-2 py-1 text-xs text-gray-400">Reported, thanks</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setReporting(reporting === p.id ? null : p.id)}
+                        aria-label="Report this post"
+                        title="Report"
+                        className="inline-flex items-center rounded-md px-2 py-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                      >
+                        <Flag className="h-4 w-4" />
+                      </button>
+                    )}
+                    {reporting === p.id && (
+                      <span className="absolute bottom-full right-0 z-10 mb-1 w-56 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg" role="menu">
+                        <span className="block px-2 py-1 text-xs text-gray-500">Why are you reporting this?</span>
+                        {REPORT_REASONS.map((r) => (
+                          <button
+                            key={r}
+                            type="button"
+                            role="menuitem"
+                            onClick={() => report(p.id, r)}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </span>
+                    )}
+                  </span>
+                )}
               </footer>
 
               {(p.replies.length > 0 || replyingTo === p.id) && (
@@ -357,7 +436,7 @@ export function PeerReviewThread({
                       <Avatar user={r.user} size="sm" />
                       <div className="min-w-0">
                         <div className="text-sm">
-                          <span className="font-medium text-gray-900">{r.user.name || r.user.username}</span>{' '}
+                          <AuthorName user={r.user} rep={reputation[r.user.id]} small />{' '}
                           <span className="text-xs text-gray-400">
                             {formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}
                           </span>

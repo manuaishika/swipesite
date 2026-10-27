@@ -86,7 +86,7 @@ export default async function DashboardPage() {
     activities = acts
     // New posts by others in threads you've posted in.
     threadActivity = await prisma.comment.findMany({
-      where: { paperId: { in: mine.map((m) => m.paperId) }, userId: { not: userId }, createdAt: { gt: sinceTwoWeeks } },
+      where: { paperId: { in: mine.map((m) => m.paperId) }, userId: { not: userId }, createdAt: { gt: sinceTwoWeeks }, status: 'visible' },
       orderBy: { createdAt: 'desc' },
       take: 4,
       select: {

@@ -37,6 +37,7 @@ export async function ActiveDiscussions({
 
     const groups = await prisma.comment.groupBy({
       by: ['paperId'],
+      where: { status: 'visible' },
       _count: { _all: true },
       _max: { createdAt: true },
       orderBy: { _max: { createdAt: 'desc' } },
