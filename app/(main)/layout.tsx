@@ -9,7 +9,7 @@ export default function MainLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main>{children}</main>
+      <main id="main">{children}</main>
       <GuestSwipeImporter />
     </div>
   )

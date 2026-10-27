@@ -65,7 +65,13 @@ export function Navbar() {
     } ${active ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}`
 
   return (
-    <nav className="relative z-40 bg-primary shadow-lg">
+    <nav className="relative z-40 bg-primary shadow-lg" aria-label="Main">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary"
+      >
+        Skip to content
+      </a>
       {/* top row: brand and account */}
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <MotionLink

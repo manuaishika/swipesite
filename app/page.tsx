@@ -11,10 +11,10 @@ import { ArrowRight, Bookmark, Calendar, Mail, PenLine, Sparkles, Users } from '
 export const dynamic = 'force-dynamic'
 
 const SECONDARY = [
-  { icon: Bookmark, title: 'Collection', body: 'Papers you saved, with your tags' },
-  { icon: PenLine, title: 'Practice critiques', body: 'Timed abstract critiques, peer-scored' },
-  { icon: Sparkles, title: 'Recommendations', body: 'More papers like the ones you pick' },
-  { icon: Users, title: 'Collaborate', body: 'Find people to work with' },
+  { icon: Bookmark, title: 'Collection', body: 'Papers you saved, with your tags', href: '/collection' },
+  { icon: PenLine, title: 'Practice critiques', body: 'Timed abstract critiques, peer-scored', href: '/practice' },
+  { icon: Sparkles, title: 'Recommendations', body: 'More papers like the ones you pick', href: '/recommendations' },
+  { icon: Users, title: 'Collaborate', body: 'Find people to work with', href: '/collaborations' },
   { icon: Calendar, title: 'Conferences', body: 'Upcoming venues and deadlines', href: '/conferences' },
   { icon: Mail, title: 'Opportunities', body: 'Open positions and calls', href: '/opportunities' },
 ]
@@ -60,10 +60,11 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-white">
       <Navbar />
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
         {/* hero */}
         <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14">
           <div className="text-center lg:text-left">
+            <p className="mb-3 text-sm font-medium text-primary">For students and early-career researchers getting into ML and AI safety</p>
             <h1 className="text-3xl font-semibold leading-tight tracking-tight text-primary-dark sm:text-5xl">
               Find the research you actually want to work on.
             </h1>
@@ -129,7 +130,7 @@ export default async function Home() {
           <Stagger className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3" gap={0.07}>
             {SECONDARY.map((f) => (
               <StaggerItem key={f.title}>
-                <PhysicsCard href={f.href ?? '/register'} className="h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" tilt={12}>
+                <PhysicsCard href={f.href} className="h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" tilt={12}>
                   <f.icon className="h-5 w-5 text-primary" />
                   <div className="mt-2 text-sm font-medium text-gray-900 sm:text-base">{f.title}</div>
                   <div className="mt-0.5 text-xs text-gray-500 sm:text-sm">{f.body}</div>
@@ -152,7 +153,7 @@ export default async function Home() {
             Start rating <ArrowRight className="h-4 w-4" />
           </PhysicsLink>
         </section>
-      </div>
+      </main>
     </div>
   )
 }
