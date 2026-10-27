@@ -9,7 +9,7 @@ const monthIndex = (m: string) => MONTHS[m.slice(0, 3).toLowerCase()]
 export function eventEnd(when: string): Date | null {
   const year = when.match(/(\d{4})\s*$/)?.[1]
   if (!year) return null
-  const parts = Array.from(when.matchAll(/([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})(?:\s*[-–]\s*(\d{1,2})\b)?/g))
+  const parts = Array.from(when.matchAll(/([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})(?!\d)(?:\s*[-–]\s*(\d{1,2})\b)?/g))
   const last = parts[parts.length - 1]
   if (!last) {
     // month only ("Mar 2027"): treat as the whole month
@@ -24,7 +24,7 @@ export function eventEnd(when: string): Date | null {
 /** First day of an event range. */
 export function eventStart(when: string): Date | null {
   const year = when.match(/(\d{4})\s*$/)?.[1]
-  const first = when.match(/([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})/)
+  const first = when.match(/([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})(?!\d)/)
   if (year && !first) {
     const m = when.match(/^([A-Za-z]{3})[a-z]*\s+\d{4}$/)
     return m && monthIndex(m[1]) !== undefined ? new Date(Number(year), monthIndex(m[1]), 1) : null

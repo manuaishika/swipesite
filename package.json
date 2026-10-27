@@ -12,7 +12,9 @@
     "seed:practice": "tsx prisma/seed-practice.ts",
     "test:practice": "tsx scripts/test-practice.ts",
     "postinstall": "prisma generate",
-    "db:migration": "prisma migrate dev --create-only"
+    "db:migration": "prisma migrate dev --create-only",
+    "test:unit": "tsx scripts/test-unit.ts",
+    "typecheck": "tsc --noEmit"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
