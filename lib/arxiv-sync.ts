@@ -1,5 +1,5 @@
 import { prisma } from './prisma'
-import { fetchArxivPapers, arxivPaperToDbFormat } from './arxiv'
+import { fetchArxivPapers, arxivPaperToDbFormat, type ArxivPaper } from './arxiv'
 import { stringToArray } from './json-helpers'
 import { syncPracticeLibrary } from './practice/library-sync'
 
@@ -68,6 +68,27 @@ async function coverage(): Promise<Map<string, number>> {
   return counts
 }
 
+/** Stores one arXiv paper unless we already have it (same arXiv id, any version, or same DOI). */
+export async function savePaper(p: ArxivPaper): Promise<{ id: string; created: boolean }> {
+  const id = p.id.replace(/v\d+$/, '')
+  const exists = await prisma.paper.findFirst({
+    where: { OR: [{ arxivId: id }, { arxivId: { startsWith: `${id}v` } }, ...(p.doi ? [{ doi: p.doi }] : [])] },
+    select: { id: true },
+  })
+  if (exists) return { id: exists.id, created: false }
+  const data = arxivPaperToDbFormat(p)
+  const row = await prisma.paper.create({
+    data: {
+      ...data,
+      title: data.title.replace(/\s+/g, ' ').trim(),
+      abstract: data.abstract.replace(/\s+/g, ' ').trim(),
+      doi: data.doi ?? undefined,
+    },
+    select: { id: true },
+  })
+  return { id: row.id, created: true }
+}
+
 export async function syncStatus() {
   const [count, newest, practice] = await Promise.all([
     prisma.paper.count(),
@@ -103,22 +124,7 @@ async function run(opts: { targets: number; perTarget: number; force: boolean })
       result.fetched += papers.length
       result.targets.push(t.id)
       for (const p of papers) {
-        const id = p.id.replace(/v\d+$/, '')
-        const exists = await prisma.paper.findFirst({
-          where: { OR: [{ arxivId: id }, { arxivId: { startsWith: `${id}v` } }, ...(p.doi ? [{ doi: p.doi }] : [])] },
-          select: { id: true },
-        })
-        if (exists) continue
-        const data = arxivPaperToDbFormat(p)
-        await prisma.paper.create({
-          data: {
-            ...data,
-            title: data.title.replace(/\s+/g, ' ').trim(),
-            abstract: data.abstract.replace(/\s+/g, ' ').trim(),
-            doi: data.doi ?? undefined,
-          },
-        })
-        result.added++
+        if ((await savePaper(p)).created) result.added++
       }
     } catch (err: any) {
       result.errors.push(`${t.id}: ${err?.message ?? 'failed'}`)

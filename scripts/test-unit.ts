@@ -6,6 +6,7 @@ import { applySwipe, emptyTally, nicheFromTally, wilson } from '../lib/niche-cor
 import { eventEnd, eventStart, firstDeadline, nextEdition } from '../lib/event-dates'
 import { buildIcs } from '../lib/ics'
 import { CONFERENCES } from '../lib/conferences'
+import { parseArxivId } from '../lib/arxiv-id'
 
 let passed = 0
 const test = (name: string, fn: () => void) => {
@@ -78,6 +79,15 @@ test('ics: all-day event ends the day after its last day', () => {
   assert.match(ics, /DTSTART;VALUE=DATE:20270130/)
   assert.match(ics, /DTEND;VALUE=DATE:20270203/)
   assert.ok(ics.includes('SUMMARY:Conf\\; with\\, chars'))
+})
+
+test('arXiv id from pasted links', () => {
+  assert.equal(parseArxivId('https://arxiv.org/abs/2401.05566v3'), '2401.05566')
+  assert.equal(parseArxivId('https://arxiv.org/pdf/2401.05566.pdf'), '2401.05566')
+  assert.equal(parseArxivId('arXiv:2401.05566'), '2401.05566')
+  assert.equal(parseArxivId(' 1706.03762 '), '1706.03762')
+  assert.equal(parseArxivId('https://arxiv.org/abs/hep-th/9901001v1'), 'hep-th/9901001')
+  assert.equal(parseArxivId('hello world'), null)
 })
 
 console.log(`\n${passed} unit checks passed`)

@@ -1,87 +1,44 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getSafeServerSession } from '@/lib/safe-session'
 import { prisma } from '@/lib/prisma'
-import { fetchArxivPapers, arxivPaperToDbFormat } from '@/lib/arxiv'
+import { fetchArxivPapersByIds } from '@/lib/arxiv'
+import { savePaper } from '@/lib/arxiv-sync'
+import { parseArxivId } from '@/lib/arxiv-id'
 
+export const dynamic = 'force-dynamic'
+
+// { input: "https://arxiv.org/abs/2401.05566" } -> { id } of our paper page (fetched from arXiv if new).
 export async function POST(request: Request) {
+  const session = await getSafeServerSession()
+  if (!session) return NextResponse.json({ error: 'Log in to add a paper' }, { status: 401 })
+  const { input } = await request.json().catch(() => ({}))
+  const arxivId = typeof input === 'string' ? parseArxivId(input) : null
+  if (!arxivId) return NextResponse.json({ error: "That doesn't look like an arXiv link or id" }, { status: 400 })
+
+  const known = await prisma.paper.findFirst({
+    where: { OR: [{ arxivId }, { arxivId: { startsWith: `${arxivId}v` } }] },
+    select: { id: true },
+  })
+  if (known) return NextResponse.json({ id: known.id, created: false })
+
+  // Light per-user limit: 20 new papers an hour (counted from the AppEvent log).
+  const recent = await prisma.appEvent.count({
+    where: { name: 'paper_import', userId: session.user.id, createdAt: { gte: new Date(Date.now() - 3600_000) } },
+  })
+  if (recent >= 20) return NextResponse.json({ error: 'Too many new papers this hour. Try again later.' }, { status: 429 })
+
+  let papers
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const {
-      searchQuery = '',
-      category = '',
-      maxResults = 20,
-      sortBy = 'submittedDate',
-      sortOrder = 'descending',
-    } = body
-
-    // Fetch papers from ArXiv
-    const arxivPapers = await fetchArxivPapers({
-      searchQuery,
-      category,
-      maxResults: Math.min(maxResults, 100), // Limit to 100
-      sortBy,
-      sortOrder,
-    })
-
-    if (arxivPapers.length === 0) {
-      return NextResponse.json({
-        message: 'No papers found',
-        imported: 0,
-      })
-    }
-
-    // Import papers to database
-    let imported = 0
-    let skipped = 0
-
-    for (const arxivPaper of arxivPapers) {
-      try {
-        // Check if paper already exists
-        const existing = await prisma.paper.findFirst({
-          where: {
-            OR: [
-              { arxivId: arxivPaper.id },
-              { doi: arxivPaper.doi || undefined },
-            ],
-          },
-        })
-
-        if (existing) {
-          skipped++
-          continue
-        }
-
-        // Convert and save to database
-        const paperData = arxivPaperToDbFormat(arxivPaper)
-        await prisma.paper.create({
-          data: paperData,
-        })
-
-        imported++
-      } catch (error) {
-        console.error(`Error importing paper ${arxivPaper.id}:`, error)
-        skipped++
-      }
-    }
-
-    return NextResponse.json({
-      message: 'Papers imported successfully',
-      imported,
-      skipped,
-      total: arxivPapers.length,
-    })
-  } catch (error) {
-    console.error('Error importing papers:', error)
-    return NextResponse.json(
-      { error: 'Failed to import papers', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    )
+    papers = await fetchArxivPapersByIds([arxivId])
+  } catch (err) {
+    console.error('[import] arXiv request failed:', err)
+    return NextResponse.json({ error: 'arXiv did not respond. Try again in a minute.' }, { status: 502 })
   }
+  // arXiv answers unknown ids with an "Error" entry rather than an empty list
+  const bare = (x: { id: string }) => x.id.replace(/v\d+$/, '')
+  const p = papers.find((x) => bare(x) === arxivId || arxivId.endsWith(`/${bare(x)}`))
+  if (!p) return NextResponse.json({ error: `arXiv has no paper ${arxivId}` }, { status: 404 })
+  const saved = await savePaper(p)
+  await prisma.appEvent.create({ data: { name: 'paper_import', userId: session.user.id, props: JSON.stringify({ arxivId }) } })
+  return NextResponse.json(saved)
 }

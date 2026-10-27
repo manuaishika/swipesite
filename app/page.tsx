@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSafeServerSession } from '@/lib/safe-session'
 import { SwipeDemo, type DemoCard } from '@/components/landing/SwipeDemo'
+import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { ActiveDiscussions } from '@/components/discussion/ActiveDiscussions'
 import { PhysicsCard, PhysicsLink, Stagger, StaggerItem } from '@/components/motion/Physics'
@@ -154,6 +155,7 @@ export default async function Home() {
           </PhysicsLink>
         </section>
       </main>
+      <Footer />
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { getNiche } from '@/lib/niche'
 import { areaLabel } from '@/lib/niche-core'
 import { VERDICTS, kindMeta, plural } from '@/lib/peer-review'
 import { LoginToParticipate } from '@/components/auth/LoginGate'
+import { AddPaper } from '@/components/discussion/AddPaper'
 
 export const dynamic = 'force-dynamic'
 
@@ -276,6 +277,7 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+          {userId && <AddPaper />}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <h2 className="font-semibold text-gray-900">Writing a useful review</h2>
             <ol className="mt-3 space-y-2 text-sm text-gray-600">
