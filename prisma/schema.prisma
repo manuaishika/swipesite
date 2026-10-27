@@ -41,6 +41,11 @@ model User {
   practiceReports     PracticeReport[]
   practiceRateEvents  PracticeRateEvent[]
   opportunities       Opportunity[]
+
+  // Notifications and the weekly email digest
+  notifications       Notification[]
+  emailDigest         Boolean   @default(true)
+  lastDigestAt        DateTime?
 }
 
 model Paper {
@@ -357,4 +362,21 @@ model Opportunity {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([deadline])
+}
+
+// In-app notifications (replies, new posts in threads you're in). Also feed the weekly digest.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  kind      String    // "reply" | "thread_post"
+  title     String
+  body      String?
+  href      String
+  actorId   String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
 }

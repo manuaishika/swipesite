@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import {
   Home,
   MessageSquare,
@@ -81,6 +82,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           {session ? (
             <>
+              <NotificationBell />
               <Link
                 href="/profile"
                 className="hidden items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-white/90 transition-colors hover:bg-white/10 hover:text-white sm:flex"

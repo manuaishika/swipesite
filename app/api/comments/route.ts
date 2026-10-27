@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { notifyThreadPost } from '@/lib/notifications'
 import { isPostKind, isVerdict, MAX_POST_CHARS } from '@/lib/peer-review'
 
 export async function POST(request: Request) {
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
       },
     })
 
+    await notifyThreadPost(comment.id).catch((err) => console.error('[notifications] thread post failed:', err))
     return NextResponse.json({ comment })
   } catch (error) {
     console.error('Error creating comment:', error)

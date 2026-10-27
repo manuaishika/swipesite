@@ -311,7 +311,7 @@ export function PeerReviewThread({
           const km = kindMeta(p.kind)
           const vm = verdictMeta(p.verdict)
           return (
-            <article key={p.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+            <article key={p.id} id={`c-${p.id}`} className="scroll-mt-24 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
               <header className="flex flex-wrap items-center gap-2">
                 <Avatar user={p.user} />
                 <span className="font-semibold text-gray-900">{p.user.name || p.user.username}</span>
