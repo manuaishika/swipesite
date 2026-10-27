@@ -12,11 +12,8 @@ import {
   BookOpen,
   User,
   LogOut,
-  Sparkles,
   Calendar,
   Mail,
-  GitCompare,
-  Lightbulb,
   PenLine,
   Layers,
   Compass,
@@ -25,23 +22,21 @@ import {
   Bookmark,
 } from 'lucide-react'
 
-// The two things ResearchSwipe is for: finding your niche (swipe) and discussion.
+// The core loops: find your niche (swipe), discuss and practise reviewing.
 const primaryNavItems = [
   { href: '/swipe', label: 'Swipe', icon: Layers },
   { href: '/niche', label: 'My niche', icon: Compass },
   { href: '/discussions', label: 'Discussions', icon: MessageSquare },
+  { href: '/practice', label: 'Practice', icon: PenLine },
 ]
 
+// Supporting pages. Compare lives inside Collection, recommendations inside My niche.
 const secondaryNavItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/collection', label: 'Collection', icon: Bookmark },
-  { href: '/practice', label: 'Practice', icon: PenLine },
-  { href: '/recommendations', label: 'Recommendations', icon: Sparkles },
-  { href: '/compare', label: 'Compare', icon: GitCompare },
-  { href: '/collaborations', label: 'Collaborate', icon: Users },
   { href: '/conferences', label: 'Conferences', icon: Calendar },
   { href: '/opportunities', label: 'Opportunities', icon: Mail },
-  { href: '/critique', label: 'Idea critique', icon: Lightbulb },
+  { href: '/collaborations', label: 'Collaborate', icon: Users },
 ]
 
 function isActive(pathname: string | null, href: string) {
@@ -168,7 +163,7 @@ export function Navbar() {
       {/* mobile menu */}
       {mobileOpen && (
         <div className="border-t border-white/10 bg-white shadow-xl md:hidden">
-          <div className="grid grid-cols-3 gap-2 p-3">
+          <div className="grid grid-cols-4 gap-2 p-3">
             {primaryNavItems.map((item) => {
               const Icon = item.icon
               const active = isActive(pathname, item.href)

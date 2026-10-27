@@ -81,6 +81,11 @@ export default async function CollectionPage({ searchParams }: { searchParams: {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Collection</h1>
         <p className="mt-1 text-gray-600">Papers you saved for later or marked interesting.</p>
+        {items.length >= 2 && (
+          <Link href="/compare" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary-100">
+            Compare papers side by side →
+          </Link>
+        )}
       </div>
 
       {allTags.length > 0 && (

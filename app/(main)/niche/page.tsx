@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { getSafeServerSession } from '@/lib/safe-session'
 import { prisma } from '@/lib/prisma'
 import { stringToArray } from '@/lib/json-helpers'
@@ -64,6 +65,9 @@ export default async function NichePage() {
         }))}
       />
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-6">
+        <Link href="/recommendations" className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+          Papers recommended from your ratings →
+        </Link>
         <ActiveDiscussions limit={3} title={focusCodes.length ? 'Discussions in your categories' : 'Discussions to join'} categories={focusCodes} />
       </div>
     </>
