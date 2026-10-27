@@ -11,9 +11,15 @@ const dmSans = DM_Sans({
   display: 'swap',
 })
 
+const siteUrl =
+  process.env.NEXTAUTH_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000')
+
 export const metadata: Metadata = {
-  title: 'TinderP - Academic Paper Platform',
-  description: 'Discover, discuss, and collaborate on academic papers',
+  metadataBase: new URL(siteUrl),
+  title: { default: 'ResearchSwipe: find your research niche', template: '%s · ResearchSwipe' },
+  description: 'Rate real arXiv abstracts to find the research areas that hold your interest, then discuss papers with people reading the same ones.',
+  openGraph: { siteName: 'ResearchSwipe', type: 'website' },
 }
 
 export default function RootLayout({

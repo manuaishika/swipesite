@@ -50,6 +50,9 @@ model User {
   // Forum trust: "expert" shows a badge (set by an admin); "admin" can moderate
   role                String    @default("member") // "member" | "expert" | "admin"
   expertise           String?   // shown with the badge, e.g. "PhD student, interpretability"
+
+  // Opt-in public research map at /u/<username> (category-level evidence only)
+  shareNiche          Boolean   @default(false)
   commentReports      CommentReport[]
 }
 

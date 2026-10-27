@@ -3,6 +3,7 @@ import { getSafeServerSession } from '@/lib/safe-session'
 import { prisma } from '@/lib/prisma'
 import { stringToArray } from '@/lib/json-helpers'
 import { getNiche } from '@/lib/niche'
+import { ShareMap } from '@/components/swipe/ShareMap'
 import { GuestNiche } from '@/components/swipe/GuestNiche'
 import { NicheReport } from '@/components/swipe/NicheReport'
 import { ActiveDiscussions } from '@/components/discussion/ActiveDiscussions'
@@ -28,6 +29,7 @@ export default async function NichePage() {
   const loaded = await safeLoad('niche', () =>
     Promise.all([
       getNiche(userId),
+      prisma.user.findUnique({ where: { id: userId }, select: { username: true, shareNiche: true } }),
       prisma.paperLike.findMany({
         where: { userId, liked: true },
         orderBy: { createdAt: 'desc' },
@@ -47,7 +49,7 @@ export default async function NichePage() {
     ]),
   )
   if (!loaded) return <DbUnavailable />
-  const [niche, picks] = loaded
+  const [niche, me, picks] = loaded
 
   // discussions in the categories this person rates highest, falling back to anything active
   const focusCodes = (niche.likely.length ? niche.likely : niche.categories.filter((c) => c.rate > niche.baseRate)).map((c) => c.code)
@@ -65,6 +67,7 @@ export default async function NichePage() {
         }))}
       />
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-6">
+        {me && niche.swipes > 0 && <ShareMap username={me.username} initial={me.shareNiche} />}
         <Link href="/recommendations" className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
           Papers recommended from your ratings →
         </Link>
