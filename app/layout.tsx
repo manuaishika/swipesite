@@ -1,12 +1,16 @@
 import type { Metadata } from 'next'
-import { DM_Sans } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { Providers } from './providers'
 
-// DM Sans: clean and light; weights above 600 aren't used anywhere.
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
+// DM Sans (SIL Open Font License, see app/fonts/OFL.txt): clean and light; weights above 600
+// aren't used anywhere. Bundled with the app so builds don't depend on reaching Google Fonts.
+const dmSans = localFont({
+  src: [
+    { path: './fonts/dm-sans-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/dm-sans-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/dm-sans-latin-600-normal.woff2', weight: '600', style: 'normal' },
+  ],
   variable: '--font-sans',
   display: 'swap',
 })
