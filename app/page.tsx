@@ -7,7 +7,7 @@ import { ActiveDiscussions } from '@/components/discussion/ActiveDiscussions'
 import { PhysicsCard, PhysicsLink, Stagger, StaggerItem } from '@/components/motion/Physics'
 import { prisma } from '@/lib/prisma'
 import { stringToArray } from '@/lib/json-helpers'
-import { ArrowRight, Bookmark, Calendar, Mail, PenLine, Sparkles, Users } from 'lucide-react'
+import { ArrowRight, Bookmark, Calendar, Gauge, Mail, Map as MapIcon, PenLine, Route, Shuffle, Sparkles, Users } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +18,13 @@ const SECONDARY = [
   { icon: Users, title: 'Collaborate', body: 'Find people to work with', href: '/collaborations' },
   { icon: Calendar, title: 'Conferences', body: 'Upcoming venues and deadlines', href: '/conferences' },
   { icon: Mail, title: 'Opportunities', body: 'Open positions and calls', href: '/opportunities' },
+]
+
+const EXPLORE = [
+  { icon: MapIcon, title: 'Where research is happening', body: 'Biggest and fastest-growing areas, from arXiv', href: '/landscape' },
+  { icon: Gauge, title: 'How niche is a topic?', body: 'Papers a year, depth and authors for any topic', href: '/landscape/niche' },
+  { icon: Shuffle, title: 'From another field', body: 'Where economics, biology, law… meet ML', href: '/landscape/bridges' },
+  { icon: Route, title: 'Research paths', body: 'Undergrad to PhD and the routes between', href: '/paths' },
 ]
 
 const STEPS = [
@@ -105,6 +112,23 @@ export default async function Home() {
                     {s.title}
                   </div>
                   <p className="mt-2 text-sm leading-relaxed text-gray-600">{s.body}</p>
+                </PhysicsCard>
+              </StaggerItem>
+            ))}
+          </Stagger>
+        </section>
+
+        {/* explore the field */}
+        <section className="mt-14 sm:mt-20">
+          <h2 className="text-2xl font-semibold text-primary-dark sm:text-3xl">Explore the field</h2>
+          <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600">See how big each area is, how niche a topic gets, where your own background fits and which path gets you there.</p>
+          <Stagger className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" gap={0.07}>
+            {EXPLORE.map((f) => (
+              <StaggerItem key={f.href}>
+                <PhysicsCard href={f.href} className="h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm" tilt={10}>
+                  <f.icon className="h-5 w-5 text-primary" />
+                  <div className="mt-3 font-medium text-gray-900">{f.title}</div>
+                  <div className="mt-1 text-sm text-gray-500">{f.body}</div>
                 </PhysicsCard>
               </StaggerItem>
             ))}

@@ -21,6 +21,8 @@ import {
   Menu,
   X,
   Bookmark,
+  Map as MapIcon,
+  Route,
 } from 'lucide-react'
 
 // The core loops: find your niche (swipe), discuss and practise reviewing.
@@ -34,6 +36,8 @@ const primaryNavItems = [
 // Supporting pages. Compare lives inside Collection, recommendations inside My niche.
 const secondaryNavItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
+  { href: '/landscape', label: 'Landscape', icon: MapIcon },
+  { href: '/paths', label: 'Paths', icon: Route },
   { href: '/collection', label: 'Collection', icon: Bookmark },
   { href: '/conferences', label: 'Conferences', icon: Calendar },
   { href: '/opportunities', label: 'Opportunities', icon: Mail },
