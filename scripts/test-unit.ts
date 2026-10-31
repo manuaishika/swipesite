@@ -7,6 +7,10 @@ import { eventEnd, eventStart, firstDeadline, nextEdition } from '../lib/event-d
 import { buildIcs } from '../lib/ics'
 import { CONFERENCES } from '../lib/conferences'
 import { parseArxivId } from '../lib/arxiv-id'
+import { squarify } from '../lib/treemap'
+import { monthWindows, nicheLevel, topicQuery } from '../lib/research-stats'
+import { BACKGROUNDS, bridgeTarget } from '../lib/bridges'
+import { EDGES, NODES } from '../lib/paths'
 
 let passed = 0
 const test = (name: string, fn: () => void) => {
@@ -88,6 +92,51 @@ test('arXiv id from pasted links', () => {
   assert.equal(parseArxivId(' 1706.03762 '), '1706.03762')
   assert.equal(parseArxivId('https://arxiv.org/abs/hep-th/9901001v1'), 'hep-th/9901001')
   assert.equal(parseArxivId('hello world'), null)
+})
+
+test('treemap: tiles fill the box and areas match the values', () => {
+  const items = [6, 6, 4, 3, 2, 2, 1]
+  const tiles = squarify(items, (v) => v, { x: 0, y: 0, w: 600, h: 400 })
+  assert.equal(tiles.length, items.length)
+  const total = tiles.reduce((s, t) => s + t.w * t.h, 0)
+  assert.ok(Math.abs(total - 600 * 400) < 1e-6)
+  for (const t of tiles) {
+    assert.ok(Math.abs((t.w * t.h) / (600 * 400) - t.item / 24) < 1e-9)
+    assert.ok(t.x >= -1e-9 && t.y >= -1e-9 && t.x + t.w <= 600 + 1e-6 && t.y + t.h <= 400 + 1e-6)
+  }
+  assert.equal(squarify([0, 0], (v) => v, { x: 0, y: 0, w: 10, h: 10 }).length, 0)
+})
+
+test('research stats: 12-month windows end at the start of this month', () => {
+  const w = monthWindows(2, new Date(Date.UTC(2026, 9, 31)))
+  assert.equal(w[0].to.toISOString().slice(0, 10), '2026-10-01')
+  assert.equal(w[0].from.toISOString().slice(0, 10), '2025-10-01')
+  assert.equal(w[1].to.toISOString().slice(0, 10), '2025-10-01')
+  assert.equal(w[0].label, 'Oct 2025 – Sep 2026')
+})
+
+test('research stats: topic input becomes a safe arXiv query', () => {
+  assert.equal(topicQuery('Mechanistic Interpretability')?.query, 'all:"mechanistic interpretability"')
+  assert.equal(topicQuery('labor market + artificial intelligence')?.query, 'all:"labor market" AND all:"artificial intelligence"')
+  assert.equal(topicQuery('transformers')?.query, 'all:transformers')
+  assert.equal(topicQuery('x') , null)
+  assert.ok(!topicQuery('a") OR cat:cs.* OR ("b')!.query.includes(')'))
+  assert.equal(nicheLevel(10).label, 'Very niche')
+  assert.equal(nicheLevel(5000).label, 'Major area')
+})
+
+test('bridges and paths: every bridge has a valid query, every edge real nodes', () => {
+  const ids = new Set<string>()
+  for (const bg of BACKGROUNDS) {
+    for (const br of bg.bridges) {
+      assert.ok(!ids.has(br.id), `duplicate bridge ${br.id}`)
+      ids.add(br.id)
+      assert.ok(bridgeTarget(br).query.startsWith('all:'), br.id)
+      assert.ok(br.cats.length > 0 && br.enjoy.length > 0, br.id)
+    }
+  }
+  const nodes = new Set(NODES.map((n) => n.id))
+  for (const e of EDGES) assert.ok(nodes.has(e.from) && nodes.has(e.to), `${e.from}->${e.to}`)
 })
 
 console.log(`\n${passed} unit checks passed`)
