@@ -85,6 +85,9 @@ const CATEGORY_NAMES: Record<string, string> = {
   'econ.TH': 'Theoretical Economics',
 }
 
+/** Every category we have a name for (the Landscape page covers these). */
+export const CATEGORY_CODES = Object.keys(CATEGORY_NAMES)
+
 // arXiv groups archives into fields; e.g. quant-ph and cond-mat both belong to Physics.
 export const FIELDS: { id: string; label: string; archives: string[] }[] = [
   { id: 'cs', label: 'Computer Science', archives: ['cs'] },

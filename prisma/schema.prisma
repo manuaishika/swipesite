@@ -420,3 +420,15 @@ model CommentReport {
   @@unique([commentId, reporterId])
   @@index([resolvedAt, createdAt])
 }
+
+// Cached arXiv paper counts behind the Landscape and Bridges pages (one row per area, topic or bridge).
+model ResearchStat {
+  key       String   @id // "cat:cs.LG" | "bridge:econ-mechanism" | "topic:model context protocol" | "all"
+  kind      String   // "category" | "bridge" | "topic" | "all" | "lease"
+  label     String
+  data      String   @default("{}") // JSON: windows of 12-month counts, optional recent-paper sample
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([kind, updatedAt])
+}

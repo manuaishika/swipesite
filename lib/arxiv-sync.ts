@@ -153,3 +153,37 @@ export async function syncArxiv(opts: { targets?: number; perTarget?: number; fo
     running = null
   }
 }
+
+export const isCategoryCode = (s: unknown): s is string => typeof s === 'string' && /^[a-z-]+(\.[A-Za-z-]+)?$/.test(s) && s.length <= 24
+
+/**
+ * Stocks specific arXiv categories (used when someone explores an area from Landscape or Bridges).
+ * Only categories with fewer than 20 papers here are fetched, at most 3 per call.
+ */
+export async function syncFocus(codes: string[]): Promise<SyncResult> {
+  const result: SyncResult = { added: 0, fetched: 0, targets: [], practiceLinked: 0, errors: [] }
+  if (running) return { ...result, skipped: 'busy' }
+  const job = (async () => {
+    const have = await coverage()
+    const thin = codes.filter(isCategoryCode).filter((c) => (have.get(c) ?? 0) < 20).slice(0, 3)
+    if (!thin.length) return { ...result, skipped: 'fresh' as const }
+    for (let i = 0; i < thin.length; i++) {
+      if (i) await sleep(ARXIV_DELAY_MS)
+      try {
+        const papers = await fetchArxivPapers({ category: thin[i], maxResults: 15, sortBy: 'submittedDate', sortOrder: 'descending' })
+        result.fetched += papers.length
+        result.targets.push(thin[i])
+        for (const p of papers) if ((await savePaper(p)).created) result.added++
+      } catch (err: any) {
+        result.errors.push(`${thin[i]}: ${err?.message ?? 'failed'}`)
+      }
+    }
+    return result
+  })()
+  running = job
+  try {
+    return await job
+  } finally {
+    running = null
+  }
+}

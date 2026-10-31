@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { syncArxiv } from '@/lib/arxiv-sync'
 import { pruneEvents } from '@/lib/metrics'
+import { ALL_TARGET, CATEGORY_TARGETS, refreshStats } from '@/lib/research-stats'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
@@ -15,7 +16,10 @@ export async function GET(request: Request) {
   }
   try {
     const pruned = await pruneEvents().catch(() => 0)
-    return NextResponse.json({ ...(await syncArxiv({ targets: 5, perTarget: 15, force: Boolean(secret) })), prunedEvents: pruned })
+    const sync = await syncArxiv({ targets: 5, perTarget: 15, force: Boolean(secret) })
+    // then keep the Landscape counts current with whatever time is left
+    const research = await refreshStats([ALL_TARGET, ...CATEGORY_TARGETS], 25_000).catch((e) => ({ error: String(e) }))
+    return NextResponse.json({ ...sync, prunedEvents: pruned, research })
   } catch (err) {
     console.error('cron arXiv sync failed:', err)
     return NextResponse.json({ error: 'Sync failed' }, { status: 500 })

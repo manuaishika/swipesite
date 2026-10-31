@@ -6,7 +6,7 @@
 import { arrayToString } from './json-helpers'
 
 // arXiv's public API needs no key. Overridable so tests can point at a local stand-in.
-const ARXIV_API = process.env.ARXIV_API_URL || 'https://export.arxiv.org/api/query'
+export const ARXIV_API = process.env.ARXIV_API_URL || 'https://export.arxiv.org/api/query'
 
 export interface ArxivPaper {
   id: string

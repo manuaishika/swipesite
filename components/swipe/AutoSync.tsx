@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react'
  * Stocks the database from arXiv when the deck is nearly empty, then reloads the page.
  * The server decides whether a fetch is actually needed (and never runs more than one at a time).
  */
-export function AutoSync({ needed, empty = false }: { needed: boolean; empty?: boolean }) {
+export function AutoSync({ needed, empty = false, focus }: { needed: boolean; empty?: boolean; focus?: string[] }) {
   const router = useRouter()
   const started = useRef(false)
   const [state, setState] = useState<'idle' | 'fetching' | 'failed'>('idle')
@@ -21,7 +21,11 @@ export function AutoSync({ needed, empty = false }: { needed: boolean; empty?: b
       let added = 0
       // a few rounds at most: each round pulls a few more categories
       for (let round = 0; round < 3 && added === 0; round++) {
-        const res = await fetch('/api/papers/sync', { method: 'POST' }).catch(() => null)
+        const res = await fetch('/api/papers/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(focus?.length ? { focus } : {}),
+        }).catch(() => null)
         if (!res?.ok) break
         const data = await res.json().catch(() => ({}))
         added += data.added ?? 0
@@ -31,7 +35,7 @@ export function AutoSync({ needed, empty = false }: { needed: boolean; empty?: b
       if (added > 0) router.refresh()
       setState(added > 0 || !empty ? 'idle' : 'failed')
     })()
-  }, [needed, empty, router])
+  }, [needed, empty, router, focus])
 
   if (state === 'fetching')
     return (

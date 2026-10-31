@@ -8,7 +8,9 @@ import { stringToArray } from '@/lib/json-helpers'
 import { AutoSync } from '@/components/swipe/AutoSync'
 import { ActiveDiscussions } from '@/components/discussion/ActiveDiscussions'
 import { getNicheTally } from '@/lib/niche'
-import { FIELDS, emptyTally, fieldOf, nicheFromTally, orderDeck, type NicheTally } from '@/lib/niche-core'
+import { isCategoryCode } from '@/lib/arxiv-sync'
+import { X } from 'lucide-react'
+import { FIELDS, areaLabel, emptyTally, fieldOf, nicheFromTally, orderDeck, type NicheTally } from '@/lib/niche-core'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +20,25 @@ function fieldWhere(fieldId: string | undefined): Prisma.PaperWhereInput {
   if (!field) return {}
   // an archive appears either with a subcategory ("cs.CL") or on its own ("quant-ph")
   return { OR: field.archives.flatMap((a) => [{ categories: { contains: `"${a}.` } }, { categories: { contains: `"${a}"` } }]) }
+}
+
+// ?focus=cs.GT,econ.TH (from Landscape or Bridges): only papers filed in these categories.
+function focusWhere(codes: string[]): Prisma.PaperWhereInput {
+  return { OR: codes.map((c) => ({ categories: { contains: `"${c}"` } })) }
+}
+
+function FocusBanner({ codes, label }: { codes: string[]; label?: string }) {
+  return (
+    <div className="mb-5 flex flex-wrap items-center gap-2 rounded-2xl border border-primary/20 bg-primary-50 px-4 py-3 text-sm">
+      <span className="text-gray-700">
+        Exploring <strong className="font-medium text-gray-900">{label || codes.map(areaLabel).join(', ')}</strong>
+      </span>
+      <span className="text-xs text-gray-500">{codes.join(' · ')}</span>
+      <Link href="/swipe" className="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-gray-600 hover:bg-white" aria-label="Back to all areas">
+        <X className="h-4 w-4" /> All areas
+      </Link>
+    </div>
+  )
 }
 
 /** How many papers each arXiv field has (by primary category), for the field filter. */
@@ -54,13 +75,17 @@ function FieldFilter({ fields, active }: { fields: { id: string; label: string; 
   )
 }
 
-export default async function SwipePage({ searchParams }: { searchParams: { field?: string } }) {
+export default async function SwipePage({ searchParams }: { searchParams: { field?: string; focus?: string; label?: string } }) {
   const session = await getSafeServerSession()
   const field = FIELDS.some((f) => f.id === searchParams.field) ? searchParams.field : undefined
+  const focus = (searchParams.focus ?? '').split(',').filter(isCategoryCode).slice(0, 6)
+  const focusLabel = searchParams.label?.slice(0, 60)
+  const scope = focus.length ? focusWhere(focus) : fieldWhere(field)
+  const deckKey = focus.length ? focus.join(',') : field ?? 'all'
 
   // Guests can rate straight away; their ratings are saved to the account after sign-up.
   if (!session) {
-    return <GuestSwipePage field={field} />
+    return <GuestSwipePage field={field} focus={focus} focusLabel={focusLabel} />
   }
 
   let papers: any[] = []
@@ -80,7 +105,7 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
     })
 
     const candidates = await prisma.paper.findMany({
-      where: { id: { notIn: swiped.map((s) => s.paperId) }, ...fieldWhere(field) },
+      where: { id: { notIn: swiped.map((s) => s.paperId) }, ...scope },
       include: { likes: { where: { liked: true }, select: { id: true } } },
       take: 120,
       orderBy: { createdAt: 'desc' },
@@ -130,15 +155,15 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
           its arXiv category.
         </p>
       </div>
-      <FieldFilter fields={fields} active={field} />
-      <AutoSync needed={papers.length < 15} empty={papers.length === 0} />
-      {papers.length === 0 && tally.swipes === 0 ? (
+      {focus.length ? <FocusBanner codes={focus} label={focusLabel} /> : <FieldFilter fields={fields} active={field} />}
+      <AutoSync needed={papers.length < 15} empty={papers.length === 0} focus={focus} />
+      {papers.length === 0 && (tally.swipes === 0 || focus.length > 0) ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
           <p className="text-lg font-semibold text-gray-900">Getting papers from arXiv</p>
           <p className="mt-1 text-gray-500">The first batch takes a few seconds. This page refreshes by itself.</p>
         </div>
       ) : (
-        <SwipeDeck key={field ?? 'all'} initialPapers={papers} initialTally={tally} initialSaved={saved} />
+        <SwipeDeck key={deckKey} initialPapers={papers} initialTally={tally} initialSaved={saved} />
       )}
       <div className="mt-12">
         <ActiveDiscussions limit={3} title="Join a discussion" />
@@ -147,12 +172,12 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
   )
 }
 
-async function GuestSwipePage({ field }: { field?: string }) {
+async function GuestSwipePage({ field, focus = [], focusLabel }: { field?: string; focus?: string[]; focusLabel?: string }) {
   let papers: any[] = []
   let fields: { id: string; label: string; count: number }[] = []
   try {
     const rows = await prisma.paper.findMany({
-      where: fieldWhere(field),
+      where: focus.length ? focusWhere(focus) : fieldWhere(field),
       include: { likes: { where: { liked: true }, select: { id: true } } },
       take: 80,
       orderBy: { createdAt: 'desc' },
@@ -172,15 +197,15 @@ async function GuestSwipePage({ field }: { field?: string }) {
           arXiv category.
         </p>
       </div>
-      <FieldFilter fields={fields} active={field} />
-      <AutoSync needed={papers.length < 15} empty={papers.length === 0} />
+      {focus.length ? <FocusBanner codes={focus} label={focusLabel} /> : <FieldFilter fields={fields} active={field} />}
+      <AutoSync needed={papers.length < 15} empty={papers.length === 0} focus={focus} />
       {papers.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
           <p className="text-lg font-semibold text-gray-900">Getting papers from arXiv</p>
           <p className="mt-1 text-gray-500">The first batch takes a few seconds. This page refreshes by itself.</p>
         </div>
       ) : (
-        <SwipeDeck key={field ?? 'all'} initialPapers={papers} initialTally={emptyTally()} guest />
+        <SwipeDeck key={focus.length ? focus.join(',') : field ?? 'all'} initialPapers={papers} initialTally={emptyTally()} guest />
       )}
       <div className="mt-12">
         <ActiveDiscussions limit={3} title="Join a discussion" />
