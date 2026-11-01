@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { ActiveDiscussions } from '@/components/discussion/ActiveDiscussions'
 import { PhysicsCard, PhysicsLink, Stagger, StaggerItem } from '@/components/motion/Physics'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { stringToArray } from '@/lib/json-helpers'
 import { ArrowRight, Bookmark, Calendar, Gauge, Mail, Map as MapIcon, PenLine, Route, Shuffle, Sparkles, Users } from 'lucide-react'
@@ -33,15 +34,22 @@ const STEPS = [
   { title: 'Discuss what you pick', body: 'Ask questions, follow up, and share short reviews with people reading the same papers.' },
 ]
 
-/** A few real papers from the database for the demo (falls back to built-in examples). */
-async function demoCards(): Promise<DemoCard[] | null> {
-  try {
-    const rows = await prisma.paper.findMany({
+/** A few real papers from the database for the demo (falls back to built-in examples). Cached 10 min. */
+const recentForDemo = unstable_cache(
+  () =>
+    prisma.paper.findMany({
       where: { categories: { not: '[]' }, abstract: { not: '' } },
       orderBy: { createdAt: 'desc' },
       take: 6,
       select: { title: true, abstract: true, categories: true, keywords: true, publishedDate: true },
-    })
+    }),
+  ['landing-demo'],
+  { revalidate: 600 },
+)
+
+async function demoCards(): Promise<DemoCard[] | null> {
+  try {
+    const rows = await recentForDemo()
     if (rows.length < 3) return null
     return rows.map((r, i) => ({
       title: r.title,

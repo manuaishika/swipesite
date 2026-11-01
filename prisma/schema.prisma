@@ -2,7 +2,10 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  // Load related records with SQL joins in one query instead of one query per relation level:
+  // far fewer round trips to the database, which is what makes pages slow on a remote database.
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {

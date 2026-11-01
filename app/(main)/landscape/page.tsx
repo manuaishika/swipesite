@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { stringToArray } from '@/lib/json-helpers'
 import { fieldOf } from '@/lib/niche-core'
@@ -12,16 +13,9 @@ export const metadata: Metadata = { title: 'Research landscape', description: 'W
 
 const DAY = 86400_000
 
-export default async function LandscapePage() {
-  let areas: Area[] = []
-  let total: number | null = null
-  let window = ''
-  let stale = 0
-  try {
-    const stats = await readStats([ALL_TARGET.key, ...CATEGORY_TARGETS.map((t) => t.key)])
-    const all = stats.get(ALL_TARGET.key)?.data
-    total = last12(all)
-    // How many people here have rated papers in each area lately (the "who's looking now" signal).
+/** How many people here rated papers in each area in the last 90 days ("who's looking now"). Cached 10 min. */
+const peopleByCategory = unstable_cache(
+  async (): Promise<Record<string, number>> => {
     const likes = await prisma.paperLike.findMany({
       where: { createdAt: { gte: new Date(Date.now() - 90 * DAY) } },
       select: { userId: true, paper: { select: { categories: true } } },
@@ -34,11 +28,27 @@ export default async function LandscapePage() {
       if (!people.has(c)) people.set(c, new Set())
       people.get(c)!.add(l.userId)
     }
+    return Object.fromEntries(Array.from(people.entries()).map(([c, s]) => [c, s.size]))
+  },
+  ['landscape-people'],
+  { revalidate: 600 },
+)
+
+export default async function LandscapePage() {
+  let areas: Area[] = []
+  let total: number | null = null
+  let window = ''
+  let stale = 0
+  try {
+    const stats = await readStats([ALL_TARGET.key, ...CATEGORY_TARGETS.map((t) => t.key)])
+    const all = stats.get(ALL_TARGET.key)?.data
+    total = last12(all)
+    const people = await peopleByCategory()
     areas = CATEGORY_TARGETS.map((t) => {
       const code = t.key.slice(4)
       const d = stats.get(t.key)?.data ?? null
       if (d && !window) window = d.windows[0].label
-      return { code, name: t.label, field: fieldOf(code).label, papers: last12(d), prev: d?.windows[1]?.count ?? null, growth: growth(d), people: people.get(code)?.size ?? 0 }
+      return { code, name: t.label, field: fieldOf(code).label, papers: last12(d), prev: d?.windows[1]?.count ?? null, growth: growth(d), people: people[code] ?? 0 }
     })
     // the same name in two archives (cs.LG and stat.ML are both "Machine Learning"): add the code
     const seen = new Map<string, number>()

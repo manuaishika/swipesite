@@ -121,3 +121,18 @@ export function isAdmin(email: string | null | undefined) {
   const list = (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
   return Boolean(email && list.includes(email.toLowerCase()))
 }
+
+/**
+ * Median time for a trivial query, in ms. On Vercel this is mostly the network distance between the
+ * function's region and the database: every query on every page pays it at least once.
+ */
+export async function dbRoundTrip(samples = 5) {
+  const times: number[] = []
+  for (let i = 0; i < samples; i++) {
+    const t = performance.now()
+    await prisma.$queryRaw`SELECT 1`
+    times.push(performance.now() - t)
+  }
+  times.sort((a, b) => a - b)
+  return { ms: Math.round(times[Math.floor(times.length / 2)]), region: process.env.VERCEL_REGION ?? 'local' }
+}

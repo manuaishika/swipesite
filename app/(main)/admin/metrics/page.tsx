@@ -4,7 +4,7 @@ import { getSafeServerSession } from '@/lib/safe-session'
 import { safeLoad } from '@/lib/safe-load'
 import { DbUnavailable } from '@/components/DbUnavailable'
 import { isModerator } from '@/lib/forum-trust'
-import { activityByWeek, nicheValidation, recentErrors, trafficByDay } from '@/lib/metrics'
+import { activityByWeek, dbRoundTrip, nicheValidation, recentErrors, trafficByDay } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,11 +16,12 @@ export default async function MetricsPage() {
   if (!(await isModerator(session?.user).catch(() => false))) notFound()
 
   const data = await safeLoad('metrics', async () => {
+    const db = await dbRoundTrip()
     const [weeks, niche, errors, traffic] = await Promise.all([activityByWeek(8), nicheValidation(), recentErrors(15), trafficByDay(14)])
-    return { weeks, niche, errors, traffic }
+    return { weeks, niche, errors, traffic, db }
   })
   if (!data) return <DbUnavailable />
-  const { weeks, niche, errors, traffic } = data
+  const { weeks, niche, errors, traffic, db } = data
   const cur = weeks[weeks.length - 1]
   const prev = weeks[weeks.length - 2]
   const max = Math.max(1, ...weeks.map((w) => w.wac))
@@ -41,6 +42,13 @@ export default async function MetricsPage() {
           North-star: <strong>weekly active contributors</strong>, people who rated, posted, replied or submitted a critique in the last 7 days.
         </p>
       </div>
+
+      <section className={`rounded-2xl border p-4 text-sm ${db.ms > 60 ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-gray-200 bg-white text-gray-700'}`}>
+        <strong className="font-medium">Database round trip: {db.ms} ms</strong> from server region <code>{db.region}</code>.{' '}
+        {db.ms > 60
+          ? 'Every query pays this, so pages feel slow. Put the Vercel functions in the same region as the database (Vercel → Project → Settings → Functions → Function Region), or move the database next to them.'
+          : 'Good: the server and the database are close together.'}
+      </section>
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Active contributors (7 days)" value={cur.wac} sub={prev ? `${cur.wac - prev.wac >= 0 ? '+' : ''}${cur.wac - prev.wac} vs week before` : undefined} />

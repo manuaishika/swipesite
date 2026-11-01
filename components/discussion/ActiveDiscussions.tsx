@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { formatDistanceToNowStrict } from 'date-fns'
 import { ArrowRight, MessagesSquare } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
@@ -15,22 +16,10 @@ type Item = {
   lastAt: Date | null
 }
 
-/**
- * Discussions people can join right now: the most recently active threads, then papers that are
- * waiting for a first post (spread across arXiv categories). Always links to the paper's thread.
- * `categories` (arXiv codes) prefers papers in those categories, e.g. on a person's niche page.
- */
-export async function ActiveDiscussions({
-  limit = 3,
-  title = 'Join a discussion',
-  categories = [],
-}: {
-  limit?: number
-  title?: string
-  categories?: string[]
-}) {
-  let items: Item[] = []
-  try {
+// The same for every visitor, so it's cached for two minutes (dates travel as ISO strings).
+const loadActive = unstable_cache(
+  async (limit: number, categories: string[]): Promise<(Omit<Item, 'lastAt'> & { lastAt: string | null })[]> => {
+    const items: Item[] = []
     const catWhere = categories.length
       ? { OR: categories.map((c) => ({ categories: { contains: `"${c}"` } })) }
       : {}
@@ -88,6 +77,29 @@ export async function ActiveDiscussions({
       pick(true)
       pick(false)
     }
+    return items.map((i) => ({ ...i, lastAt: i.lastAt ? i.lastAt.toISOString() : null }))
+  },
+  ['active-discussions'],
+  { revalidate: 120 },
+)
+
+/**
+ * Discussions people can join right now: the most recently active threads, then papers that are
+ * waiting for a first post (spread across arXiv categories). Always links to the paper's thread.
+ * `categories` (arXiv codes) prefers papers in those categories, e.g. on a person's niche page.
+ */
+export async function ActiveDiscussions({
+  limit = 3,
+  title = 'Join a discussion',
+  categories = [],
+}: {
+  limit?: number
+  title?: string
+  categories?: string[]
+}) {
+  let items: Item[] = []
+  try {
+    items = (await loadActive(limit, categories)).map((i) => ({ ...i, lastAt: i.lastAt ? new Date(i.lastAt) : null }))
   } catch (err) {
     console.error('[ActiveDiscussions] load failed:', err)
     return null

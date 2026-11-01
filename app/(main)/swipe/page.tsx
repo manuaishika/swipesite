@@ -1,6 +1,7 @@
 import { getSafeServerSession } from '@/lib/safe-session'
 import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { SwipeDeck } from '@/components/swipe/SwipeDeck'
 import { transformPapers } from '@/lib/paper-helpers'
@@ -41,8 +42,8 @@ function FocusBanner({ codes, label }: { codes: string[]; label?: string }) {
   )
 }
 
-/** How many papers each arXiv field has (by primary category), for the field filter. */
-async function fieldCounts() {
+/** How many papers each arXiv field has (by primary category), for the field filter. Cached 10 min. */
+const fieldCounts = unstable_cache(async () => {
   const rows = await prisma.paper.findMany({ select: { categories: true }, take: 5000 })
   const counts = new Map<string, number>()
   for (const r of rows) {
@@ -52,7 +53,7 @@ async function fieldCounts() {
     counts.set(f, (counts.get(f) ?? 0) + 1)
   }
   return FIELDS.filter((f) => counts.get(f.id)).map((f) => ({ id: f.id, label: f.label, count: counts.get(f.id)! }))
-}
+}, ['swipe-field-counts'], { revalidate: 600 })
 
 function FieldFilter({ fields, active }: { fields: { id: string; label: string; count: number }[]; active?: string }) {
   if (fields.length < 2) return null
