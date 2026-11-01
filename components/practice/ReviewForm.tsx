@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Send } from 'lucide-react'
 import { practicePost } from '@/lib/practice/api-client'
-import { ARXIV_ATTRIBUTION, CRITERIA, LIMITS, PROMPTS, type Answers, type Scores } from '@/lib/practice/constants'
+import { CRITERIA, LIMITS, PROMPTS, type Answers, type Scores } from '@/lib/practice/constants'
 import { NoAiNotice } from './Notices'
 import { ReportButton } from './ReportButton'
 import { ArxivLink, Card, Chip, btnPrimary, inputCls, scoreTone } from './ui'
@@ -106,7 +106,7 @@ export function ReviewForm({ task }: { task: Task }) {
             <h2 className="mt-1 text-lg font-semibold leading-snug text-gray-900">{task.abstract.title}</h2>
             <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800">{task.abstract.abstract}</p>
             <div className="mt-5 border-t border-gray-100 pt-3 text-xs text-gray-500">
-              Source: <ArxivLink id={task.abstract.arxivId} url={task.abstract.arxivUrl} />. {ARXIV_ATTRIBUTION}
+              Source: <ArxivLink id={task.abstract.arxivId} url={task.abstract.arxivUrl} />
             </div>
           </Card>
         </aside>

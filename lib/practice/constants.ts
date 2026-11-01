@@ -41,5 +41,3 @@ export const RATE_LIMITS = {
 } as const
 export const RATE_WINDOW_MS = 60 * 60 * 1000
 
-export const ARXIV_ATTRIBUTION =
-  'Abstracts and metadata are retrieved from arXiv via the arXiv API. Thank you to arXiv for use of its open access interoperability.'

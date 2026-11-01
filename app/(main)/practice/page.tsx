@@ -15,7 +15,7 @@ import {
 import { optionalUserId } from '@/lib/practice/require-user'
 import { LoginToParticipate } from '@/components/auth/LoginGate'
 import { getDashboard, listLibrary } from '@/lib/practice/service'
-import { ArxivAttribution, Rules } from '@/components/practice/Notices'
+import { Rules } from '@/components/practice/Notices'
 import { Card, Chip, EmptyState, PageShell, SectionTitle } from '@/components/practice/ui'
 import { safeLoad } from '@/lib/safe-load'
 import { DbUnavailable } from '@/components/DbUnavailable'
@@ -159,9 +159,6 @@ export default async function PracticeHome() {
               ))}
             </div>
           )}
-          <div className="mt-4">
-            <ArxivAttribution />
-          </div>
         </section>
 
         {/* activity */}

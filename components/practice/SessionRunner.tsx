@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Ban, Check, Loader2, Send, Timer } from 'lucide-react'
 import { practicePost } from '@/lib/practice/api-client'
-import { ARXIV_ATTRIBUTION, LIMITS, PROMPTS, type Answers } from '@/lib/practice/constants'
+import { LIMITS, PROMPTS, type Answers } from '@/lib/practice/constants'
 import { ArxivLink, Card, btnPrimary, inputCls } from './ui'
 
 type Props = {
@@ -128,7 +128,7 @@ export function SessionRunner({ sessionId, abstract, startedMs, deadlineMs, serv
               <h1 className="mt-1 text-xl font-semibold leading-snug text-gray-900">{abstract.title}</h1>
               <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800">{abstract.abstract}</p>
               <div className="mt-5 border-t border-gray-100 pt-3 text-xs text-gray-500">
-                Source: <ArxivLink id={abstract.arxivId} url={abstract.arxivUrl} />. {ARXIV_ATTRIBUTION}
+                Source: <ArxivLink id={abstract.arxivId} url={abstract.arxivUrl} />
               </div>
             </Card>
           </aside>

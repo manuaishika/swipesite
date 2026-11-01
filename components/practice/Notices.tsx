@@ -1,5 +1,4 @@
 import { Ban, ShieldAlert } from 'lucide-react'
-import { ARXIV_ATTRIBUTION } from '@/lib/practice/constants'
 
 function Notice({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
@@ -39,6 +38,3 @@ export function Rules() {
   )
 }
 
-export function ArxivAttribution() {
-  return <p className="text-xs text-gray-500">{ARXIV_ATTRIBUTION}</p>
-}

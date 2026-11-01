@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Hourglass } from 'lucide-react'
 import { requireUserId } from '@/lib/practice/require-user'
 import { getFeedback } from '@/lib/practice/service'
-import { ARXIV_ATTRIBUTION, CRITERIA, PROMPTS, type Scores } from '@/lib/practice/constants'
+import { CRITERIA, PROMPTS, type Scores } from '@/lib/practice/constants'
 import { ReportButton } from '@/components/practice/ReportButton'
 import { HelpfulButton } from '@/components/practice/HelpfulButton'
 import { ArxivLink, Card, Chip, EmptyState, PageShell, ScoreChip, SectionTitle, btnPrimary } from '@/components/practice/ui'
@@ -41,7 +41,7 @@ export default async function FeedbackPage({ params }: { params: { id: string } 
       </div>
       <h1 className="mt-2 text-2xl font-semibold leading-snug text-gray-900 sm:text-3xl">{f.abstract.title}</h1>
       <p className="mt-1 text-xs text-gray-500">
-        Source: <ArxivLink id={f.abstract.arxivId} url={f.abstract.arxivUrl} />. {ARXIV_ATTRIBUTION}
+        Source: <ArxivLink id={f.abstract.arxivId} url={f.abstract.arxivUrl} />
       </p>
 
       {f.status === 'hidden' && (
