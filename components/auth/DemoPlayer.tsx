@@ -364,22 +364,36 @@ export function DemoPlayer({ demo, className = '' }: { demo: DemoKey; className?
     return () => clearTimeout(t)
   }, [i, playing, reduced, frames.length])
 
+  // Styled as a dark "preview screen" so it never reads as real content on the page.
   return (
-    <figure className={`overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 ${className}`} data-demo={demo}>
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2">
-        <figcaption className="text-xs font-semibold text-gray-700">{title}</figcaption>
+    <figure className={`overflow-hidden rounded-2xl bg-slate-900 p-1.5 shadow-lg ring-1 ring-slate-800 ${className}`} data-demo={demo}>
+      <div className="flex items-center gap-2 px-3 py-2">
+        <span className="flex gap-1" aria-hidden>
+          <span className="h-2 w-2 rounded-full bg-slate-600" />
+          <span className="h-2 w-2 rounded-full bg-slate-600" />
+          <span className="h-2 w-2 rounded-full bg-slate-600" />
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-900">
+          <Play className="h-2.5 w-2.5 fill-current" /> Demo
+        </span>
+        <figcaption className="min-w-0 flex-1 truncate text-xs font-medium text-slate-200">{title}</figcaption>
         <button
           type="button"
           onClick={() => setPlaying((p) => !p)}
           aria-label={playing ? 'Pause demo' : 'Play demo'}
-          className="rounded-md p-1 text-gray-500 hover:bg-gray-100"
+          className="rounded-md p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
         >
           {playing && !reduced ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
         </button>
       </div>
-      <div className="p-4">
+      {/* the "screen": example content only, on a patterned backdrop */}
+      <div
+        className="rounded-xl p-4"
+        style={{ backgroundColor: '#eef2f6', backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '14px 14px' }}
+      >
         <div className="min-h-[9.5rem]">
-          <AnimatePresence mode="wait">
+          {/* initial={false}: the first slide is visible straight away, even before scripts load */}
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 10 }}
@@ -391,7 +405,9 @@ export function DemoPlayer({ demo, className = '' }: { demo: DemoKey; className?
             </motion.div>
           </AnimatePresence>
         </div>
-        <p className="mt-3 min-h-[2.5rem] text-sm leading-snug text-gray-700" aria-live="polite">{frames[i].caption}</p>
+      </div>
+      <div className="px-3 pb-2.5 pt-3">
+        <p className="min-h-[2.5rem] text-sm leading-snug text-slate-100" aria-live="polite">{frames[i].caption}</p>
         <div className="mt-2 flex gap-1.5">
           {frames.map((_, k) => (
             <button
@@ -399,7 +415,7 @@ export function DemoPlayer({ demo, className = '' }: { demo: DemoKey; className?
               type="button"
               aria-label={`Step ${k + 1}`}
               onClick={() => { setI(k); setPlaying(false) }}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${k === i ? 'bg-primary' : 'bg-gray-200 hover:bg-gray-300'}`}
+              className={`h-1.5 flex-1 rounded-full transition-colors ${k === i ? 'bg-amber-400' : 'bg-slate-700 hover:bg-slate-600'}`}
             />
           ))}
         </div>
