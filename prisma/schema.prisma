@@ -56,6 +56,10 @@ model User {
 
   // Opt-in public research map at /u/<username> (category-level evidence only)
   shareNiche          Boolean   @default(false)
+
+  // Niche quests: XP, daily streak and milestones overall, plus progress per track
+  questStats          QuestStats?
+  questProgress       QuestProgress[]
   commentReports      CommentReport[]
 }
 
@@ -434,4 +438,32 @@ model ResearchStat {
   updatedAt DateTime @updatedAt
 
   @@index([kind, updatedAt])
+}
+
+// Niche quests (Duolingo-style): totals and the daily streak for one person.
+model QuestStats {
+  userId    String   @id
+  xp        Int      @default(0)
+  streak    Int      @default(0)
+  bestStreak Int     @default(0)
+  lastDay   String?  // "2026-11-04", the last day a lesson was finished (UTC)
+  badges    String   @default("[]") // JSON array of milestone ids
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Progress on one track: the level placed at and the best result per lesson.
+model QuestProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  track     String   // "ml" | "nlp" | ... | "cat:<arXiv code>" for generated tracks
+  level     Int      @default(0) // 0 beginner, 1 intermediate, 2 advanced: where they were placed
+  lessons   String   @default("{}") // JSON { lessonId: best score 0-5 }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, track])
 }
