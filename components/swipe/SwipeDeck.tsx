@@ -7,6 +7,7 @@ import { ArrowRight, Heart, Loader2, MessagesSquare, PartyPopper, RotateCcw, X }
 import { applySwipe, categoryEvidence, emptyTally, nicheFromTally, type NicheTally } from '@/lib/niche-core'
 import { readGuestSaves, readGuestSwipes, writeGuestSaves, writeGuestSwipes, type GuestSwipe } from '@/lib/guest-swipes'
 import { NichePanel } from './NichePanel'
+import { NicheReveal } from '@/components/quest/NicheReveal'
 import { StackedCard, SwipeCard, type SwipePaper } from './SwipeCard'
 
 type Paper = SwipePaper & { keywords: string[] }
@@ -305,6 +306,7 @@ export function SwipeDeck({ initialPapers, initialTally, initialSaved = {}, gues
 
       <aside className="lg:sticky lg:top-6 lg:self-start">
         <NichePanel niche={niche} guest={guest} />
+        <NicheReveal niche={niche} />
       </aside>
 
     </div>

@@ -21,6 +21,7 @@ import {
   Menu,
   X,
   Bookmark,
+  Trophy,
   Map as MapIcon,
   Route,
 } from 'lucide-react'
@@ -31,6 +32,7 @@ const primaryNavItems = [
   { href: '/niche', label: 'My niche', icon: Compass },
   { href: '/discussions', label: 'Discussions', icon: MessageSquare },
   { href: '/practice', label: 'Practice', icon: PenLine },
+  { href: '/quest', label: 'Quests', icon: Trophy },
 ]
 
 // Supporting pages. Compare lives inside Collection, recommendations inside My niche.
@@ -175,7 +177,7 @@ export function Navbar() {
       {/* mobile menu */}
       {mobileOpen && (
         <div className="border-t border-white/10 bg-white shadow-xl md:hidden">
-          <div className="grid grid-cols-4 gap-2 p-3">
+          <div className="grid grid-cols-3 gap-2 p-3">
             {primaryNavItems.map((item) => {
               const Icon = item.icon
               const active = isActive(pathname, item.href)

@@ -7,15 +7,11 @@ import { prisma } from '@/lib/prisma'
 import { stringToArray } from '@/lib/json-helpers'
 import { areaLabel, fieldOf } from '@/lib/niche-core'
 import { keyPoints } from '@/lib/abstract-points'
-import { TRACKS, trackById, trackForCategory, type Q, type Track } from './bank'
+import { TRACKS, trackById, type Q, type Track } from './bank'
 import { seededShuffle, type TrackShape } from './engine'
 
-export const AREA_PREFIX = 'area-'
-
-/** The track someone with this niche category should play. */
-export const trackIdFor = (code: string) => trackForCategory(code)?.id ?? `${AREA_PREFIX}${code}`
-
-export const isTrackId = (id: string) => Boolean(trackById(id)) || /^area-[a-z-]+(\.[A-Za-z-]+)?$/.test(id)
+import { AREA_PREFIX, isTrackId } from './ids'
+export { AREA_PREFIX, isTrackId, trackIdFor } from './ids'
 
 export const shapeOf = (t: Track): TrackShape => ({ id: t.id, lessonIds: t.levels.map((l) => l.lessons.map((x) => x.id)) })
 

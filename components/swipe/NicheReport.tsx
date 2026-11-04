@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { ArrowRight, Layers, MessagesSquare } from 'lucide-react'
 import { categoryPath, fieldOf, METHOD, type Niche } from '@/lib/niche-core'
 import { EvidenceRow, StageStepper } from './NichePanel'
+import { NicheReveal } from '@/components/quest/NicheReveal'
+import { trackIdFor } from '@/lib/quest/ids'
 
 export type NichePick = { id: string; title: string; categories: string[]; posts?: number; reviewed?: boolean }
 
@@ -31,6 +33,7 @@ export function NicheReport({ niche, picks, guest = false }: { niche: Niche; pic
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <NicheReveal niche={niche} />
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-accent p-6 text-white shadow-lg sm:p-10">
         <div className="max-w-md">
           <StageStepper niche={niche} onDark />
@@ -54,6 +57,11 @@ export function NicheReport({ niche, picks, guest = false }: { niche: Niche; pic
           </p>
         )}
         <div className="mt-6 flex flex-wrap gap-3">
+          {niche.likely[0] && (
+            <Link href={`/quest/${trackIdFor(niche.likely[0].code)}`} className="inline-flex items-center gap-2 rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-amber-200">
+              🏆 Start your {niche.likely[0].name} quest
+            </Link>
+          )}
           <Link href="/swipe" className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-primary shadow-sm hover:bg-primary-50">
             <Layers className="h-4 w-4" /> {niche.swipes ? 'Rate more abstracts' : 'Start rating'}
           </Link>

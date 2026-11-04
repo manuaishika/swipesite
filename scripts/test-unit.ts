@@ -11,6 +11,9 @@ import { squarify } from '../lib/treemap'
 import { monthWindows, nicheLevel, topicQuery } from '../lib/research-stats'
 import { BACKGROUNDS, bridgeTarget } from '../lib/bridges'
 import { EDGES, NODES } from '../lib/paths'
+import { TRACKS } from '../lib/quest/bank'
+import { emptyProgress, emptyStats, finishLesson, lessonStates, place, seededShuffle } from '../lib/quest/engine'
+import { shapeOf } from '../lib/quest/tracks'
 
 let passed = 0
 const test = (name: string, fn: () => void) => {
@@ -137,6 +140,67 @@ test('bridges and paths: every bridge has a valid query, every edge real nodes',
   }
   const nodes = new Set(NODES.map((n) => n.id))
   for (const e of EDGES) assert.ok(nodes.has(e.from) && nodes.has(e.to), `${e.from}->${e.to}`)
+})
+
+test('quest bank: every track has 3 levels x 2 lessons x 5 well-formed questions, unique ids', () => {
+  const ids = new Set<string>()
+  for (const t of TRACKS) {
+    assert.equal(t.levels.length, 3, t.id)
+    for (const lv of t.levels) {
+      assert.equal(lv.lessons.length, 2, t.id)
+      for (const l of lv.lessons) {
+        assert.ok(!ids.has(l.id), `duplicate lesson ${l.id}`)
+        ids.add(l.id)
+        assert.equal(l.q.length, 5, l.id)
+        for (const [q, opts, ans, why] of l.q) {
+          assert.ok(q.length > 5 && why.length > 5, l.id)
+          assert.equal(new Set(opts).size, 4, `duplicate options in ${l.id}: ${q}`)
+          assert.ok(ans >= 0 && ans < 4)
+        }
+      }
+    }
+  }
+})
+
+test('quest engine: lessons unlock in order, pass at 4/5, XP, streaks, milestones', () => {
+  const shape = shapeOf(TRACKS[0])
+  const [a, b] = shape.lessonIds[0]
+  let st = lessonStates(shape, emptyProgress())
+  assert.equal(st[a], 'current')
+  assert.equal(st[b], 'locked')
+  assert.equal(finishLesson(shape, emptyStats(), emptyProgress(), b, 5), null) // locked
+  const r1 = finishLesson(shape, emptyStats(), emptyProgress(), a, 3, '2026-11-01')!
+  assert.equal(r1.passed, false)
+  assert.equal(r1.xp, 30)
+  assert.ok(r1.earned.includes('first-lesson'))
+  assert.equal(lessonStates(shape, r1.progress)[a], 'current') // not passed yet
+  const r2 = finishLesson(shape, r1.stats, r1.progress, a, 5, '2026-11-02')!
+  assert.equal(r2.xp, 60)
+  assert.ok(r2.earned.includes('perfect'))
+  assert.equal(r2.stats.streak, 2)
+  st = lessonStates(shape, r2.progress)
+  assert.equal(st[a], 'done')
+  assert.equal(st[b], 'current')
+  const r3 = finishLesson(shape, r2.stats, r2.progress, b, 4, '2026-11-03')!
+  assert.equal(r3.levelCleared, 0)
+  assert.ok(r3.earned.includes('level-0') && r3.earned.includes('streak-3') && r3.earned.includes('xp-100'))
+  const r4 = finishLesson(shape, r3.stats, r3.progress, shape.lessonIds[1][0], 4, '2026-11-05')!
+  assert.equal(r4.stats.streak, 1) // missed a day
+  assert.equal(r4.stats.bestStreak, 3)
+})
+
+test('quest engine: placement places, drops a level on a poor score, skips lower lessons', () => {
+  const shape = shapeOf(TRACKS[1])
+  assert.equal(place(emptyStats(), emptyProgress(), 2, 4)!.level, 2)
+  assert.equal(place(emptyStats(), emptyProgress(), 2, 3)!.level, 2)
+  assert.equal(place(emptyStats(), emptyProgress(), 2, 2)!.level, 1)
+  assert.equal(place(emptyStats(), emptyProgress(), 0, 0)!.level, 0)
+  assert.equal(place(emptyStats(), emptyProgress(), 3, 5), null)
+  const p = place(emptyStats(), emptyProgress(), 1, 5)!.progress
+  const st = lessonStates(shape, p)
+  assert.equal(st[shape.lessonIds[0][0]], 'skipped')
+  assert.equal(st[shape.lessonIds[1][0]], 'current')
+  assert.deepEqual(seededShuffle([1, 2, 3, 4, 5], 'x'), seededShuffle([1, 2, 3, 4, 5], 'x'))
 })
 
 console.log(`\n${passed} unit checks passed`)

@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { GuestSwipeImporter } from '@/components/swipe/GuestSwipeImporter'
+import { QuestImporter } from '@/components/quest/QuestImporter'
 
 export default function MainLayout({
   children,
@@ -13,6 +14,7 @@ export default function MainLayout({
       <main id="main">{children}</main>
       <Footer />
       <GuestSwipeImporter />
+      <QuestImporter />
     </div>
   )
 }
