@@ -14,38 +14,40 @@
     "postinstall": "prisma generate",
     "db:migration": "prisma migrate dev --create-only",
     "test:unit": "tsx scripts/test-unit.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "tsx scripts/e2e-smoke.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "next": "^14.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^5.2.2",
+    "@prisma/client": "^5.6.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.8.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "prisma": "^5.6.0",
-    "@prisma/client": "^5.6.0",
-    "next-auth": "^4.24.0",
-    "bcryptjs": "^2.4.3",
-    "@types/bcryptjs": "^2.4.6",
-    "zod": "^3.22.4",
-    "framer-motion": "^10.16.4",
-    "lucide-react": "^0.292.0",
-    "tailwindcss": "^3.3.5",
     "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31",
+    "bcryptjs": "^2.4.3",
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.292.0",
+    "next": "^14.0.0",
+    "next-auth": "^4.24.0",
+    "postcss": "^8.4.31",
+    "prisma": "^5.6.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-markdown": "^9.0.1",
-    "remark-gfm": "^4.0.0"
+    "remark-gfm": "^4.0.0",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "eslint": "^8.52.0",
     "eslint-config-next": "^14.0.0",
+    "playwright-core": "^1.56.1",
     "tsx": "^4.6.0"
   }
 }

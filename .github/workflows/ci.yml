@@ -46,3 +46,14 @@ jobs:
         run: npm run test:practice
       - name: Build
         run: npx next build
+      - name: Install Chromium for the end-to-end test
+        run: npx playwright-core install --with-deps chromium
+      - name: End-to-end smoke test (production build, stand-in arXiv)
+        env:
+          ARXIV_API_URL: http://localhost:9911/api/query
+          BASE: http://localhost:3000
+        run: |
+          node scripts/mock-arxiv.mjs &
+          npx next start -p 3000 > next.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/about > /dev/null && break; sleep 1; done
+          npm run test:e2e || (tail -50 next.log; exit 1)
