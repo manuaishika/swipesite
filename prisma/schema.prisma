@@ -60,6 +60,7 @@ model User {
   // Niche quests: XP, daily streak and milestones overall, plus progress per track
   questStats          QuestStats?
   questProgress       QuestProgress[]
+  passwordResets      PasswordReset[]
   commentReports      CommentReport[]
 }
 
@@ -466,4 +467,18 @@ model QuestProgress {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, track])
+}
+
+// One-time password reset links. Only a hash of the token is stored; links expire after an hour.
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

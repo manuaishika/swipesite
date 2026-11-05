@@ -15,11 +15,16 @@ export default function ForgotPasswordPage() {
     setError('')
     setLoading(true)
 
-    // Simulate sending reset email
-    setTimeout(() => {
-      setSubmitted(true)
-      setLoading(false)
-    }, 1000)
+    const res = await fetch('/api/auth/forgot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }).catch(() => null)
+    const data = await res?.json().catch(() => null)
+    setLoading(false)
+    if (data?.emailOff) setError('Password reset by email isn’t switched on for this site yet. Please contact the site admin.')
+    else if (res?.ok) setSubmitted(true)
+    else setError(data?.error ?? 'Something went wrong. Try again.')
   }
 
   if (submitted) {
@@ -36,7 +41,7 @@ export default function ForgotPasswordPage() {
               Check Your Email
             </h2>
             <p className="text-gray-600 mb-6">
-              We&apos;ve sent password reset instructions to <strong>{email}</strong>
+              If an account exists for <strong>{email}</strong>, we&apos;ve sent it a link to choose a new password. It works once, for one hour.
             </p>
             <p className="text-sm text-gray-500 mb-6">
               Didn&apos;t receive the email? Check your spam folder or try again.
