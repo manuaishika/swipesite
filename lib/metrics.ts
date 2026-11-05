@@ -136,3 +136,10 @@ export async function dbRoundTrip(samples = 5) {
   times.sort((a, b) => a - b)
   return { ms: Math.round(times[Math.floor(times.length / 2)]), region: process.env.VERCEL_REGION ?? 'local' }
 }
+
+/** Notes a scheduled job's run, so /admin/health can show when each job last ran and how it went. */
+export async function recordCron(job: string, ok: boolean, summary: unknown) {
+  await prisma.appEvent
+    .create({ data: { name: 'cron_run', path: job, props: JSON.stringify({ ok: String(ok), summary: JSON.stringify(summary).slice(0, 1500) }) } })
+    .catch(() => {})
+}

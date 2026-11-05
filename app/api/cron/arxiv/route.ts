@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { syncArxiv } from '@/lib/arxiv-sync'
-import { pruneEvents } from '@/lib/metrics'
+import { pruneEvents, recordCron } from '@/lib/metrics'
 import { ALL_TARGET, CATEGORY_TARGETS, refreshStats } from '@/lib/research-stats'
 
 export const maxDuration = 60
@@ -19,9 +19,12 @@ export async function GET(request: Request) {
     const sync = await syncArxiv({ targets: 5, perTarget: 15, force: Boolean(secret) })
     // then keep the Landscape counts current with whatever time is left
     const research = await refreshStats([ALL_TARGET, ...CATEGORY_TARGETS], 25_000).catch((e) => ({ error: String(e) }))
-    return NextResponse.json({ ...sync, prunedEvents: pruned, research })
+    const result = { ...sync, prunedEvents: pruned, research }
+    await recordCron('arxiv', !sync.errors.length, result)
+    return NextResponse.json(result)
   } catch (err) {
     console.error('cron arXiv sync failed:', err)
+    await recordCron('arxiv', false, { error: String(err) })
     return NextResponse.json({ error: 'Sync failed' }, { status: 500 })
   }
 }

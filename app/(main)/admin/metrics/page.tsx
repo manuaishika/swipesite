@@ -37,7 +37,7 @@ export default async function MetricsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
       <div>
-        <div className="flex items-baseline justify-between"><h1 className="text-2xl font-semibold text-gray-900">Metrics</h1><a href="/admin/moderation" className="text-sm font-medium text-primary hover:underline">Moderation →</a></div>
+        <div className="flex items-baseline justify-between"><h1 className="text-2xl font-semibold text-gray-900">Metrics</h1><span className="flex gap-4 text-sm font-medium text-primary"><a href="/admin/health" className="hover:underline">Health</a><a href="/admin/moderation" className="hover:underline">Moderation →</a></span></div>
         <p className="mt-1 text-sm text-gray-600">
           North-star: <strong>weekly active contributors</strong>, people who rated, posted, replied or submitted a critique in the last 7 days.
         </p>

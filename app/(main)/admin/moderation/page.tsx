@@ -36,7 +36,7 @@ export default async function ModerationPage() {
     <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
       <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Moderation</h1>
-        <Link href="/admin/metrics" className="text-sm font-medium text-primary hover:underline">Metrics →</Link>
+        <span className="flex gap-4 text-sm font-medium text-primary"><Link href="/admin/health" className="hover:underline">Health</Link><Link href="/admin/metrics" className="hover:underline">Metrics →</Link></span>
       </div>
 
       <section>
