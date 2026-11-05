@@ -87,7 +87,7 @@ export default function ImportPage() {
             type="text"
             value={formData.searchQuery}
             onChange={(e) => setFormData({ ...formData, searchQuery: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
             placeholder="e.g., transformer, attention mechanism, deep learning"
           />
           <p className="mt-1 text-sm text-gray-500">
@@ -103,7 +103,7 @@ export default function ImportPage() {
             id="category"
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
           >
             <option value="">All Categories</option>
             {commonCategories.map((cat) => (
@@ -125,7 +125,7 @@ export default function ImportPage() {
             max="100"
             value={formData.maxResults}
             onChange={(e) => setFormData({ ...formData, maxResults: parseInt(e.target.value) || 20 })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
           />
         </div>
 
@@ -133,7 +133,7 @@ export default function ImportPage() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50"
           >
             {loading ? 'Importing...' : 'Import Papers'}
           </button>

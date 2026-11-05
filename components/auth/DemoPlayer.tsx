@@ -243,34 +243,6 @@ const DEMOS: Record<string, { title: string; frames: Frame[] }> = {
       },
     ],
   },
-  idea: {
-    title: 'How idea critique works',
-    frames: [
-      {
-        caption: '1. Write a research idea in a few sentences.',
-        mock: (
-          <Panel>
-            <div className="rounded-lg bg-gray-50 p-2 text-xs text-gray-700">
-              <Typed text="Does steering vectors transfer across fine-tunes?" />
-            </div>
-            <Btn pressAt={2.4}>Ask for critique</Btn>
-          </Panel>
-        ),
-      },
-      {
-        caption: '2. You get structured feedback on what is clear, what is missing and what to test first.',
-        mock: (
-          <Panel>
-            {['Clear', 'Missing', 'Test first'].map((l, i) => (
-              <motion.div key={l} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.4 }} className="flex items-center gap-2">
-                <Chip active={i === 0}>{l}</Chip><Line w={['w-3/4', 'w-2/3', 'w-4/5'][i]} />
-              </motion.div>
-            ))}
-          </Panel>
-        ),
-      },
-    ],
-  },
   recs: {
     title: 'How recommendations work',
     frames: [

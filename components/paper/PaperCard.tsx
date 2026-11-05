@@ -65,7 +65,7 @@ export function PaperCard({ paper }: PaperCardProps) {
                 {paper.keywords.slice(0, 5).map((keyword, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full"
+                    className="px-2 py-1 bg-primary-100 text-primary text-xs rounded-full"
                   >
                     {keyword}
                   </span>
@@ -95,7 +95,7 @@ export function PaperCard({ paper }: PaperCardProps) {
             href={paper.pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
             <span>View PDF</span>

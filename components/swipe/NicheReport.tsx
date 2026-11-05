@@ -73,7 +73,7 @@ export function NicheReport({ niche, picks, guest = false }: { niche: Niche; pic
             )
           ) : (
             <Link href="/discussions" className="inline-flex items-center gap-2 rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
-              <MessagesSquare className="h-4 w-4" /> Peer review
+              <MessagesSquare className="h-4 w-4" /> Discussions
             </Link>
           )}
         </div>

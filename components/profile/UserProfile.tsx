@@ -40,8 +40,8 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
   return (
     <div className="bg-white rounded-xl shadow-lg p-8">
       <div className="flex items-start space-x-6 mb-6">
-        <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center">
-          <span className="text-indigo-600 text-2xl font-semibold">
+        <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center">
+          <span className="text-primary text-2xl font-semibold">
             {(user.name || user.username)[0].toUpperCase()}
           </span>
         </div>
@@ -56,7 +56,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
               {user.interests.map((interest, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full"
+                  className="px-3 py-1 bg-primary-100 text-primary text-sm rounded-full"
                 >
                   {interest}
                 </span>
@@ -66,26 +66,18 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8 pb-8 border-b">
+      <div className="grid grid-cols-3 gap-4 mb-8 pb-8 border-b">
         <div className="text-center">
           <div className="text-2xl font-semibold text-gray-900">{user._count.likedPapers}</div>
-          <div className="text-sm text-gray-600">Liked Papers</div>
+          <div className="text-sm text-gray-600">Interesting</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-semibold text-gray-900">{user._count.savedPapers}</div>
-          <div className="text-sm text-gray-600">Saved Papers</div>
+          <div className="text-sm text-gray-600">Saved</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-semibold text-gray-900">{user._count.comments}</div>
-          <div className="text-sm text-gray-600">Comments</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-semibold text-gray-900">{user._count.followers}</div>
-          <div className="text-sm text-gray-600">Followers</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-semibold text-gray-900">{user._count.following}</div>
-          <div className="text-sm text-gray-600">Following</div>
+          <div className="text-sm text-gray-600">Posts</div>
         </div>
       </div>
 

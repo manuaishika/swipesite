@@ -129,7 +129,7 @@ export function CollaborationsList({ collaborations, userId }: CollaborationsLis
                 {isOwner ? (
                   <Link
                     href={`/collaborations/${collab.id}`}
-                    className="text-sm text-indigo-600 hover:text-indigo-700"
+                    className="text-sm text-primary hover:text-primary"
                   >
                     View Requests
                   </Link>
@@ -150,7 +150,7 @@ export function CollaborationsList({ collaborations, userId }: CollaborationsLis
                   <button
                     onClick={() => handleRequest(collab.id)}
                     disabled={requesting === collab.id}
-                    className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                    className="flex items-center space-x-2 px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />
                     <span>{requesting === collab.id ? 'Sending...' : 'Request to Collaborate'}</span>

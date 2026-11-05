@@ -9,7 +9,6 @@ import {
   Compass,
   GitCompare,
   Layers,
-  Lightbulb,
   Mail,
   MessagesSquare,
   PenLine,
@@ -17,7 +16,6 @@ import {
   Users,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { ActivityFeed } from '@/components/feed/ActivityFeed'
 import { getNiche } from '@/lib/niche'
 import type { Niche } from '@/lib/niche-core'
 import { StageStepper } from '@/components/swipe/NichePanel'
@@ -35,7 +33,6 @@ const SECONDARY = [
   { href: '/collaborations', label: 'Collaborate', body: 'Find research partners', icon: Users },
   { href: '/conferences', label: 'Conferences', body: 'Upcoming venues and deadlines', icon: Calendar },
   { href: '/opportunities', label: 'Opportunities', body: 'Open positions and calls', icon: Mail },
-  { href: '/critique', label: 'Idea critique', body: 'Feedback on a research idea', icon: Lightbulb },
 ]
 
 export default async function DashboardPage() {
@@ -52,12 +49,11 @@ export default async function DashboardPage() {
   let waiting: { id: string; title: string }[] = []
   let waitingCount = 0
   let threadActivity: any[] = []
-  let activities: any[] = []
   let dbError: string | null = null
 
   try {
     const sinceTwoWeeks = new Date(Date.now() - 14 * 24 * 3600 * 1000)
-    const [n, swipeCount, picks, pickCount, mine, acts] = await Promise.all([
+    const [n, swipeCount, picks, pickCount, mine] = await Promise.all([
       getNiche(userId),
       prisma.paper.count({ where: { likes: { none: { userId } } } }),
       prisma.paperLike.findMany({
@@ -68,22 +64,11 @@ export default async function DashboardPage() {
       }),
       prisma.paperLike.count({ where: { userId, liked: true, paper: { comments: { none: { userId, kind: 'review' } } } } }),
       prisma.comment.findMany({ where: { userId }, distinct: ['paperId'], select: { paperId: true }, take: 200 }),
-      prisma.activity.findMany({
-        // skips are logged too, but they're noise here (the feed renders them as "performed an action")
-        where: { userId, type: { in: ['like', 'comment', 'save', 'collaboration', 'follow'] } },
-        include: {
-          user: { select: { id: true, name: true, username: true, avatar: true } },
-          paper: { select: { id: true, title: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 8,
-      }),
     ])
     niche = n
     toSwipe = swipeCount
     waiting = picks.map((p) => p.paper)
     waitingCount = pickCount
-    activities = acts
     // New posts by others in threads you've posted in.
     threadActivity = await prisma.comment.findMany({
       where: { paperId: { in: mine.map((m) => m.paperId) }, userId: { not: userId }, createdAt: { gt: sinceTwoWeeks }, status: 'visible' },
@@ -117,7 +102,7 @@ export default async function DashboardPage() {
           </p>
           <Link
             href="/api/status"
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
+            className="text-primary hover:text-primary font-medium"
           >
             Check Status →
           </Link>
@@ -186,7 +171,7 @@ export default async function DashboardPage() {
         {/* pillar 2: peer review */}
         <section className="flex flex-col rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-            <MessagesSquare className="h-4 w-4" /> Peer review
+            <MessagesSquare className="h-4 w-4" /> Discussions
           </div>
           <h2 className="mt-3 text-2xl font-semibold leading-tight text-gray-900">
             {waitingCount > 0 ? `${plural(waitingCount, 'pick')} waiting for your review` : 'Review what you picked'}
@@ -226,7 +211,7 @@ export default async function DashboardPage() {
           )}
           <div className="mt-auto pt-6">
             <Link href="/discussions" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-light">
-              Open peer review <ArrowRight className="h-4 w-4" />
+              Open discussions <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
@@ -252,12 +237,6 @@ export default async function DashboardPage() {
         </Stagger>
       </section>
 
-      {activities.length > 0 && (
-        <section className="mt-10">
-          <h2 className="mb-3 text-lg font-semibold text-gray-900">Recent activity</h2>
-          <ActivityFeed activities={activities} />
-        </section>
-      )}
     </div>
   )
 }

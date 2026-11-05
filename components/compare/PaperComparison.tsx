@@ -1,288 +1,103 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, ArrowRight, Loader2 } from 'lucide-react'
-import { PaperCard } from '../paper/PaperCard'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
+import { ExternalLink, MessagesSquare, ThumbsUp } from 'lucide-react'
+import { keyPoints, displayKeywords } from '@/lib/abstract-points'
+import { areaLabel } from '@/lib/niche-core'
 
-interface Paper {
+export type ComparePaper = {
   id: string
   title: string
   abstract: string
   authors: string[]
-  keywords: string[]
   categories: string[]
-  citations: number
-  publishedDate: Date | null
-  venue: string | null
+  keywords: string[]
+  published: string | null
+  url: string | null
+  interested: number
+  posts: number
 }
 
-interface PaperComparisonProps {
-  papers: Paper[]
-  userId: string
-}
+/** Pick two saved papers and read them side by side. Facts only: nothing here is scored or judged. */
+export function PaperComparison({ papers }: { papers: ComparePaper[] }) {
+  const [a, setA] = useState(papers[0]?.id ?? '')
+  const [b, setB] = useState(papers[1]?.id ?? '')
+  const pa = papers.find((p) => p.id === a)
+  const pb = papers.find((p) => p.id === b)
 
-interface ComparisonResult {
-  morePromising: 'paper1' | 'paper2' | 'equal'
-  reasoning: string
-  paper1Strengths: string[]
-  paper2Strengths: string[]
-  paper1Weaknesses: string[]
-  paper2Weaknesses: string[]
-  recommendation: string
-}
+  if (papers.length < 2)
+    return (
+      <div className="mt-8 rounded-2xl border border-dashed border-gray-300 bg-white/60 p-8 text-center text-gray-600">
+        Save at least two papers to compare them. Tap Save on any abstract while swiping.
+        <div className="mt-4">
+          <Link href="/swipe" className="inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white">Rate abstracts</Link>
+        </div>
+      </div>
+    )
 
-export function PaperComparison({ papers, userId }: PaperComparisonProps) {
-  const [paper1, setPaper1] = useState<Paper | null>(null)
-  const [paper2, setPaper2] = useState<Paper | null>(null)
-  const [search1, setSearch1] = useState('')
-  const [search2, setSearch2] = useState('')
-  const [comparing, setComparing] = useState(false)
-  const [result, setResult] = useState<ComparisonResult | null>(null)
-  const [error, setError] = useState('')
-
-  const filteredPapers1 = papers.filter((p) =>
-    p.title.toLowerCase().includes(search1.toLowerCase()) ||
-    p.abstract.toLowerCase().includes(search1.toLowerCase())
+  const pick = (value: string, set: (v: string) => void, other: string, label: string) => (
+    <select value={value} onChange={(e) => set(e.target.value)} aria-label={label} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm">
+      {papers.map((p) => (
+        <option key={p.id} value={p.id} disabled={p.id === other}>{p.title}</option>
+      ))}
+    </select>
   )
-
-  const filteredPapers2 = papers.filter((p) =>
-    p.title.toLowerCase().includes(search2.toLowerCase()) ||
-    p.abstract.toLowerCase().includes(search2.toLowerCase())
-  )
-
-  const handleCompare = async () => {
-    if (!paper1 || !paper2) {
-      setError('Please select both papers to compare')
-      return
-    }
-
-    if (paper1.id === paper2.id) {
-      setError('Please select two different papers')
-      return
-    }
-
-    setComparing(true)
-    setError('')
-    setResult(null)
-
-    try {
-      const response = await fetch('/api/papers/compare', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paper1Id: paper1.id,
-          paper2Id: paper2.id,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Failed to compare papers')
-        return
-      }
-
-      setResult(data.comparison)
-    } catch (err) {
-      setError('Something went wrong. Please try again.')
-    } finally {
-      setComparing(false)
-    }
-  }
 
   return (
-    <div className="space-y-8">
-      {/* Paper Selection */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Paper 1 Selection */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Select First Paper</h3>
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search papers..."
-              value={search1}
-              onChange={(e) => setSearch1(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <div className="max-h-64 overflow-y-auto space-y-2">
-            {filteredPapers1.map((paper) => (
-              <button
-                key={paper.id}
-                onClick={() => setPaper1(paper)}
-                className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${
-                  paper1?.id === paper.id
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <p className="font-medium text-sm text-gray-900 line-clamp-2">{paper.title}</p>
-                <p className="text-xs text-gray-500 mt-1">{paper.authors.slice(0, 2).join(', ')}</p>
-              </button>
-            ))}
-            {filteredPapers1.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-4">No papers found</p>
-            )}
-          </div>
-          {paper1 && (
-            <div className="mt-4 p-3 bg-indigo-50 rounded-lg">
-              <p className="text-sm font-medium text-indigo-900">Selected:</p>
-              <p className="text-sm text-indigo-700">{paper1.title}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Paper 2 Selection */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Second Paper</h3>
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search papers..."
-              value={search2}
-              onChange={(e) => setSearch2(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <div className="max-h-64 overflow-y-auto space-y-2">
-            {filteredPapers2.map((paper) => (
-              <button
-                key={paper.id}
-                onClick={() => setPaper2(paper)}
-                className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${
-                  paper2?.id === paper.id
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <p className="font-medium text-sm text-gray-900 line-clamp-2">{paper.title}</p>
-                <p className="text-xs text-gray-500 mt-1">{paper.authors.slice(0, 2).join(', ')}</p>
-              </button>
-            ))}
-            {filteredPapers2.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-4">No papers found</p>
-            )}
-          </div>
-          {paper2 && (
-            <div className="mt-4 p-3 bg-indigo-50 rounded-lg">
-              <p className="text-sm font-medium text-indigo-900">Selected:</p>
-              <p className="text-sm text-indigo-700">{paper2.title}</p>
-            </div>
-          )}
-        </div>
+    <div className="mt-6">
+      <div className="grid gap-3 md:grid-cols-2">
+        {pick(a, setA, b, 'First paper')}
+        {pick(b, setB, a, 'Second paper')}
       </div>
-
-      {/* Compare Button */}
-      <div className="flex justify-center">
-        <button
-          onClick={handleCompare}
-          disabled={!paper1 || !paper2 || comparing}
-          className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {comparing ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Comparing...</span>
-            </>
-          ) : (
-            <>
-              <span>Compare Papers</span>
-              <ArrowRight className="w-5 h-5" />
-            </>
-          )}
-        </button>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      {/* Comparison Results */}
-      {result && (
-        <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
-          <div className="border-b pb-4">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Comparison Results</h2>
-            <div className={`inline-block px-4 py-2 rounded-lg ${
-              result.morePromising === 'paper1'
-                ? 'bg-green-100 text-green-800'
-                : result.morePromising === 'paper2'
-                ? 'bg-blue-100 text-blue-800'
-                : 'bg-gray-100 text-gray-800'
-            }`}>
-              {result.morePromising === 'paper1' && 'First paper is more promising'}
-              {result.morePromising === 'paper2' && 'Second paper is more promising'}
-              {result.morePromising === 'equal' && 'Both papers are equally promising'}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Reasoning</h3>
-            <p className="text-gray-700 leading-relaxed">{result.reasoning}</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">First Paper Strengths</h4>
-              <ul className="space-y-1">
-                {result.paper1Strengths.map((strength, idx) => (
-                  <li key={idx} className="text-sm text-gray-700 flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
-                    {strength}
-                  </li>
-                ))}
-              </ul>
-              {result.paper1Weaknesses.length > 0 && (
-                <>
-                  <h4 className="font-semibold text-gray-900 mb-2 mt-4">Weaknesses</h4>
-                  <ul className="space-y-1">
-                    {result.paper1Weaknesses.map((weakness, idx) => (
-                      <li key={idx} className="text-sm text-gray-700 flex items-start">
-                        <span className="text-red-500 mr-2">✗</span>
-                        {weakness}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Second Paper Strengths</h4>
-              <ul className="space-y-1">
-                {result.paper2Strengths.map((strength, idx) => (
-                  <li key={idx} className="text-sm text-gray-700 flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
-                    {strength}
-                  </li>
-                ))}
-              </ul>
-              {result.paper2Weaknesses.length > 0 && (
-                <>
-                  <h4 className="font-semibold text-gray-900 mb-2 mt-4">Weaknesses</h4>
-                  <ul className="space-y-1">
-                    {result.paper2Weaknesses.map((weakness, idx) => (
-                      <li key={idx} className="text-sm text-gray-700 flex items-start">
-                        <span className="text-red-500 mr-2">✗</span>
-                        {weakness}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-indigo-50 border-l-4 border-indigo-600 p-4">
-            <h4 className="font-semibold text-indigo-900 mb-2">Recommendation</h4>
-            <p className="text-indigo-800">{result.recommendation}</p>
-          </div>
+      {pa && pb && (
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <Side p={pa} />
+          <Side p={pb} />
         </div>
       )}
     </div>
+  )
+}
+
+function Side({ p }: { p: ComparePaper }) {
+  const points = useMemo(() => keyPoints(p.abstract), [p.abstract])
+  const kws = displayKeywords(p.keywords, 6)
+  return (
+    <article className="flex flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <p className="text-xs text-gray-500">
+        {p.categories[0] ? areaLabel(p.categories[0]) : 'Uncategorised'}
+        {p.published && ` · ${new Date(p.published).getFullYear()}`}
+      </p>
+      <h2 className="mt-1 font-semibold leading-snug text-gray-900">{p.title}</h2>
+      <p className="mt-1 truncate text-xs text-gray-500">{p.authors.slice(0, 4).join(', ')}{p.authors.length > 4 ? ` +${p.authors.length - 4}` : ''}</p>
+
+      <dl className="mt-4 space-y-3">
+        {points.map((k) => (
+          <div key={k.label}>
+            <dt className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{k.label}</dt>
+            <dd className="mt-0.5 text-sm leading-relaxed text-gray-800">{k.text}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {kws.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {kws.map((k) => (
+            <span key={k} className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-700">{k}</span>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-auto flex flex-wrap items-center gap-4 border-t border-gray-100 pt-4 text-sm text-gray-600">
+        <span className="inline-flex items-center gap-1.5" title="People here who marked it interesting"><ThumbsUp className="h-4 w-4" /> {p.interested}</span>
+        <Link href={`/paper/${p.id}#discussion`} className="inline-flex items-center gap-1.5 hover:text-primary"><MessagesSquare className="h-4 w-4" /> {p.posts} post{p.posts === 1 ? '' : 's'}</Link>
+        {p.url && (
+          <a href={p.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 font-medium text-primary hover:underline">
+            arXiv <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+    </article>
   )
 }

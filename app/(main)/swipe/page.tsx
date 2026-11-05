@@ -138,7 +138,7 @@ export default async function SwipePage({ searchParams }: { searchParams: { fiel
           </p>
           <Link
             href="/api/status"
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
+            className="text-primary hover:text-primary font-medium"
           >
             Check Status →
           </Link>

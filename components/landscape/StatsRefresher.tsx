@@ -35,7 +35,7 @@ export function StatsRefresher({ body, stale, total, noun = 'areas' }: { body: R
 
   if (state === 'running')
     return (
-      <p role="status" className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1.5 text-sm text-primary-700">
+      <p role="status" className="mb-4 inline-flex max-w-full items-center gap-2 rounded-2xl bg-primary-50 px-3 py-1.5 text-sm text-primary-700">
         <Loader2 className="h-4 w-4 animate-spin" /> Counting papers on arXiv… {total - left} of {total} {noun}
       </p>
     )

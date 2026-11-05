@@ -113,7 +113,7 @@ export default async function PeerReviewPage({ searchParams }: { searchParams: {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Peer review</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Discussions</h1>
           <p className="mt-1 max-w-2xl text-gray-600">
             A discussion thread on every paper: ask questions, follow up on other people&apos;s readings, and share
             short reviews.
